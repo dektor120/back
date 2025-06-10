@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - ТурСервис{% endblock %}
+
+{% block head %}
+<style>
+    .hero {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("https://solo-way.ru/wp-content/uploads/2021/07/4fb2a041646ad7d9b74ff11af797e320-scaled.jpeg");
+        background-size: cover;
+        background-position: center;
+        color: white;
+        text-align: center;
+        padding: 8rem 1rem;
+        border-radius: 0.5rem;
+    }
+    .hero h1 { font-size: 3.5rem; font-weight: 700; }
+    .hero p { font-size: 1.25rem; max-width: 600px; margin: 1rem auto; }
+
+    .section { padding: 4rem 0; }
+    .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 3rem; font-weight: 300; }
+
+    .feature-card { text-align: center; }
+    .feature-icon { font-size: 3rem; color: #007bff; margin-bottom: 1rem; }
+
+    .destination-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        color: white;
+        min-height: 400px;
+        display: flex;
+        align-items: flex-end;
+        padding: 1.5rem;
+        transition: transform 0.3s;
+        text-decoration: none;
+    }
+    .destination-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+    }
+    .destination-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        z-index: 1;
+    }
+    .destination-card img {
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+    .destination-card:hover img { transform: scale(1.05); }
+    .destination-info { position: relative; z-index: 2; }
+    .destination-info h3 { color: white; margin: 0; font-weight: 600; }
+
+    .partners-grid {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        filter: grayscale(100%);
+        opacity: 0.7;
+    }
+    .partners-grid img { max-height: 40px; max-width: 150px; }
+
+    .cta-section { text-align: center; padding: 4rem 1rem; background-color: #0d6efd; color: white; border-radius: 0.5rem; }
+    .cta-section h2 { color: white; font-weight: 600;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero mb-5">
+    <h1>Ваше путешествие начинается здесь</h1>
+    <p>Откройте для себя мир с комфортом и уверенностью. Мы подберем для вас идеальный тур.</p>
+    <a href="/tours" class="btn btn-primary btn-lg mt-3">Подобрать тур</a>
+</div>
+
+<div class="container">
+    <div class="section">
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">✔️</div>
+                    <h3>Надежность</h3>
+                    <p class="lead text-muted">Работаем только с проверенными туроператорами и отелями.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">❤️</div>
+                    <h3>Индивидуальный подход</h3>
+                    <p class="lead text-muted">Подберем тур, который идеально подходит именно вам.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3>Поддержка 24/7</h3>
+                    <p class="lead text-muted">Мы на связи на всех этапах вашего путешествия.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section bg-light rounded p-5">
+        <h2 class="section-title">Популярные направления</h2>
+        <div id="destinations-list" class="destinations-grid">
+            <p class="text-center">Загрузка направлений...</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Наши партнеры</h2>
+    <div class="partners-grid">
+        <img src="https://avatars.mds.yandex.net/get-altay/15249330/2a00000193d625303fd12669a07c6e46f28e/orig" alt="Аэрофлот">
+        <img src="https://avatars.mds.yandex.net/i?id=1660111cfe56a942ea14f7f6adae6cc434cf5abd-10471586-images-thumbs&n=13" alt="S7 Airlines">
+        <img src="https://avatars.mds.yandex.net/i?id=2b9ea901c9b49586c1d973bc16c897a3e1a05e4c-12935956-images-thumbs&n=13" alt="Turkish Airlines">
+        <img src="https://i.pinimg.com/originals/8b/3b/5b/8b3b5b0c222397aab920df1ff021b4a3.png" alt="Marriott">
+        <img src="https://avatars.mds.yandex.net/i?id=ebec76476e9a0bcad4a0761bd2eb61b110ed475a-4034276-images-thumbs&n=13" alt="Hilton">
+    </div>
+    </div>
+</div>
+
+<div class="cta-section">
+    <div class="container">
+        <h2>Готовы к приключениям?</h2>
+        <p class="lead">Просмотрите все наши актуальные предложения и найдите то, что заставит ваше сердце биться чаще.</p>
+        <a href="/tours" class="btn btn-light btn-lg mt-3">Все туры</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    socket.on('main_page_data', (data) => {
+        renderDestinations(data.countries);
+    });
+
+    socket.emit('get_main_page_data', {});
+
+    function renderDestinations(countries = []) {
+        const listDiv = document.getElementById('destinations-list');
+        listDiv.innerHTML = '';
+        if (countries.length === 0) {
+            listDiv.innerHTML = '<p class="text-center">Не удалось загрузить направления.</p>';
+            return;
+        }
+
+        const images = {
+            'Египет': 'https://i.pinimg.com/originals/b7/a4/f0/b7a4f031cb8f175fc20b2ff155cae7f7.jpg',
+            'Франция': 'https://avatars.mds.yandex.net/i?id=c95b76ad49bcef05642ac5be40634cf1_l-5279616-images-thumbs&n=13',
+            'Таиланд': 'https://i.pinimg.com/originals/dc/84/76/dc8476cddcaf0ba58973d10d7f656e00.jpg',
+            'Италия': 'https://alexandra.bridestory.com/image/upload/assets/venice-03-pcYsh837t.jpg',
+            'Турция': 'https://i.pinimg.com/originals/f7/0b/1d/f70b1d4681057694bb751b6594526a8d.jpg',
+            'Япония': 'https://i.pinimg.com/originals/aa/79/0b/aa790b10256bc17dacf836dac5f8c4ac.jpg',
+        };
+
+        countries.forEach(country => {
+            const cardLink = document.createElement('a');
+            cardLink.href = `/tours?country_id=${country.id}`;
+            cardLink.className = 'destination-card';
+            cardLink.innerHTML = `
+                <img src="${images[country.name] || 'https://images.unsplash.com/photo-1501785888041-af3ef285b470'}" alt="${country.name}">
+                <div class="destination-info">
+                    <h3>${country.name}</h3>
+                </div>
+            `;
+            listDiv.appendChild(cardLink);
+        });
+    }
+});
+</script>
+{% endblock %}

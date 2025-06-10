@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Вход и регистрация{% endblock %}
+
+{% block head %}
+<style>
+    .auth-wrapper {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .auth-container {
+        max-width: 450px;
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-container">
+        <!-- Форма входа (видна по умолчанию) -->
+        <div id="login-form" class="card p-4">
+            <h2 class="text-center mb-4">Вход в систему</h2>
+            <div class="auth-form">
+                <div class="mb-3">
+                    <label for="login_login" class="form-label">Логин</label>
+                    <input type="text" id="login_login" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="login_password" class="form-label">Пароль</label>
+                    <input type="password" id="login_password" class="form-control" required>
+                </div>
+                <div id="login-error" class="text-danger mb-3"></div>
+                <button id="loginButton" class="btn btn-primary w-100">Войти</button>
+            </div>
+            <div class="text-center mt-3">
+                <small>Нет аккаунта? <a href="#" id="show-register">Зарегистрироваться</a></small>
+            </div>
+        </div>
+
+        <!-- Форма регистрации (скрыта по умолчанию) -->
+        <div id="register-form" class="card p-4" style="display: none;">
+            <h2 class="text-center mb-4">Регистрация</h2>
+            <div class="auth-form">
+                <div class="mb-3">
+                    <label for="reg_login" class="form-label">Логин</label>
+                    <input type="text" id="reg_login" class="form-control" placeholder="5-20 символов, a-z, 0-9, _" required>
+                </div>
+                 <div class="mb-3">
+                    <label for="reg_email" class="form-label">Email</label>
+                    <input type="email" id="reg_email" class="form-control" placeholder="example@mail.com" required>
+                </div>
+                <div class="mb-3">
+                    <label for="reg_password" class="form-label">Пароль</label>
+                    <input type="password" id="reg_password" class="form-control" placeholder="Минимум 6 символов" required>
+                </div>
+                <div id="register-error" class="text-danger mb-3"></div>
+                <button id="registerButton" class="btn btn-primary w-100">Зарегистрироваться</button>
+            </div>
+            <div class="text-center mt-3">
+                <small>Уже есть аккаунт? <a href="#" id="show-login">Войти</a></small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ВАЛИДАЦИИ (на клиенте) ---
+    const validators = {
+        login: (val) => /^[a-zA-Z0-9_]{5,20}$/.test(val),
+        email: (val) => /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]*$/.test(val),
+        password: (val) => val.length >= 6,
+        // Добавим простую проверку для логина при входе (не пустой)
+        notEmpty: (val) => val.trim() !== ''
+    };
+
+    const errorMessages = {
+        login: 'Длина логина: 5-20 символов (латиница, цифры).',
+        email: 'Некорректный формат email.',
+        password: 'Длина пароля не менее 6 символов.',
+        notEmpty: 'Поле не может быть пустым.'
+    };
+
+    // --- Логика страницы ---
+    if (getCookie('token')) {
+        // Если уже залогинен, перенаправляем на главную
+        window.location.href = '/';
+        return;
+    }
+
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const showRegisterLink = document.getElementById('show-register');
+    const showLoginLink = document.getElementById('show-login');
+    const loginButton = document.getElementById('loginButton');
+    const registerButton = document.getElementById('registerButton');
+
+    // Переключатели форм
+    showRegisterLink.onclick = () => { loginForm.style.display = 'none'; registerForm.style.display = 'block'; };
+    showLoginLink.onclick = () => { loginForm.style.display = 'block'; registerForm.style.display = 'none'; };
+
+    // --- Обработчики событий Socket.IO ---
+    socket.on('login_response', (data) => {
+        if (data.success) {
+            alert('Вход выполнен успешно!');
+            document.cookie = `token=${data.token}; path=/; max-age=86400; SameSite=Lax; Secure`;
+
+            const payload = parseJwt(data.token);
+            if (payload.role === 'client' && !data.profile_filled) {
+                alert('Пожалуйста, заполните данные вашего профиля для продолжения.');
+                window.location.href = '/profile';
+            } else {
+                window.location.href = payload.role === 'admin' ? '/admin_dashboard' : '/';
+            }
+        } else {
+            document.getElementById('login-error').innerText = data.message;
+        }
+    });
+
+    socket.on('register_response', (data) => {
+        if (data.success) {
+            alert(data.message);
+            showLoginLink.click();
+        } else {
+            document.getElementById('register-error').innerText = data.message;
+        }
+    });
+
+    // --- Логика кнопок ---
+    loginButton.onclick = () => {
+        const loginInput = document.getElementById('login_login');
+        const passwordInput = document.getElementById('login_password');
+        const errorDiv = document.getElementById('login-error');
+        errorDiv.innerText = '';
+
+        if (!validators.notEmpty(loginInput.value) || !validators.notEmpty(passwordInput.value)) {
+            errorDiv.innerText = 'Заполните все поля!';
+            return;
+        }
+        socket.emit('login', {'login': loginInput.value, 'password': passwordInput.value});
+    };
+
+    registerButton.onclick = () => {
+        const loginInput = document.getElementById('reg_login');
+        const emailInput = document.getElementById('reg_email');
+        const passwordInput = document.getElementById('reg_password');
+        const errorDiv = document.getElementById('register-error');
+        errorDiv.innerText = '';
+
+        if (!validators.login(loginInput.value)) { errorDiv.innerText = errorMessages.login; return; }
+        if (!validators.email(emailInput.value)) { errorDiv.innerText = errorMessages.email; return; }
+        if (!validators.password(passwordInput.value)) { errorDiv.innerText = errorMessages.password; return; }
+
+        socket.emit('register', {'login': loginInput.value, 'email': emailInput.value, 'password': passwordInput.value});
+    };
+});
+</script>
+{% endblock %}

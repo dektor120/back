@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}Наши отели{% endblock %}
+
+{% block head %}
+<style>
+    /* --- ОСНОВНЫЕ СТИЛИ ДЛЯ СЕТКИ И КАРТОЧЕК --- */
+    .hotels-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 2rem;
+    }
+
+    .hotel-card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .hotel-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+
+    /* --- СТИЛИ ДЛЯ ИЗОБРАЖЕНИЯ --- */
+    .hotel-photo {
+        height: 220px;
+        width: 100%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    /* --- Стили для контента карточки --- */
+    .hotel-info {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .hotel-info h3 {
+        margin-top: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .hotel-location {
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+    .hotel-description {
+        color: #495057;
+        flex-grow: 1;
+        margin-bottom: 1rem;
+    }
+    .stars { color: #ffc107; }
+
+    .amenities { margin-top: 1rem; }
+    .amenity {
+        display: inline-block;
+        background-color: #e9ecef;
+        color: #495057;
+        padding: 0.3rem 0.6rem;
+        border-radius: 15px;
+        font-size: 0.8em;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+
+    .admin-form { grid-column: 1 / -1; }
+    .admin-controls { display: flex; gap: 5px; }
+    .consult-button { margin-top: auto; } /* Прижимаем кнопку к низу */
+
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1050; }
+    .modal-content { background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 450px; }
+    .error-message { color: #dc3545; font-size: 0.9em; margin-top: 5px; min-height: 1.2em; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <h1>Наши отели-партнеры</h1>
+        <p class="lead text-muted">Мы работаем только с проверенными отелями, чтобы обеспечить ваш комфорт и безопасность.</p>
+    </div>
+
+    <!-- Форма для админа -->
+    <div id="admin-panel" class="card admin-panel mb-5" style="display: none;">
+        <h2 id="hotel-form-title">Добавить новый отель</h2>
+        <input type="hidden" id="hotel-id">
+        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <input type="text" id="hotel-name" class="form-control" placeholder="Название отеля">
+            <select id="hotel-country" class="form-select"></select>
+            <select id="hotel-city" class="form-select"></select>
+            <input type="number" id="hotel-stars" class="form-control" placeholder="Звезды (1-5)" min="1" max="5">
+            <input type="number" id="hotel-rooms" class="form-control" placeholder="Общее кол-во номеров">
+            <input type="text" id="hotel-photos" class="form-control full-width" placeholder="URL фото (через запятую)">
+            <textarea id="hotel-description" class="form-control full-width" placeholder="Описание отеля" rows="3"></textarea>
+            <input type="text" id="hotel-amenities" class="form-control full-width" placeholder="Удобства (через запятую, н-р: Бассейн, Wi-Fi)">
+        </div>
+        <br>
+        <button id="saveHotelButton" class="btn btn-primary">Сохранить отель</button>
+        <button id="cancelHotelEditButton" class="btn btn-secondary" style="display: none;">Отмена</button>
+    </div>
+
+    <!-- Контейнер для списка отелей -->
+    <div id="hotels-list" class="hotels-grid">
+        <p class="text-center w-100">Загрузка отелей...</p>
+    </div>
+</div>
+
+<!-- Модальное окно для заявки -->
+<div class="modal fade" id="request-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="request-modal-title">Запрос консультации</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <p>Оставьте ваши данные, и наш менеджер свяжется с вами в ближайшее время!</p>
+                <div class="mb-3"><label for="request-name" class="form-label">Ваше ФИО</label><input type="text" class="form-control" id="request-name"></div>
+                <div class="mb-3"><label for="request-phone" class="form-label">Ваш номер телефона</label><input type="tel" class="form-control" id="request-phone"></div>
+                <div id="request-error" class="text-danger"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="submitRequestButton">Отправить заявку</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- ВАЛИДАЦИЯ ---
+    const validators = {
+        fullName: (val) => /^[а-яА-ЯёЁ\s-]{5,}$/.test(val) && val.split(' ').length >= 2,
+        phone: (val) => /^(\+7|8)\d{10}$/.test(val),
+    };
+    const errorMessages = {
+        fullName: 'Введите корректное ФИО (кириллица, >= 2 слова).',
+        phone: 'Некорректный формат телефона (пример: +79123456789).',
+    };
+
+    let allHotels = [], allCities = [], allCountries = [], mongoDetails = [];
+    let currentRequestSource = '';
+
+    const token = getCookie('token');
+    const payload = parseJwt(token);
+    const isAdmin = payload?.role === 'admin';
+    const requestModal = new bootstrap.Modal(document.getElementById('request-modal'));
+
+    // --- Элементы DOM ---
+    const hotelsListDiv = document.getElementById('hotels-list');
+    const adminPanel = document.getElementById('admin-panel');
+    const saveHotelButton = document.getElementById('saveHotelButton');
+    const cancelHotelEditButton = document.getElementById('cancelHotelEditButton');
+    const submitRequestButton = document.getElementById('submitRequestButton');
+
+    // --- Слушатели ---
+    socket.on('hotels_data', (data) => {
+        allHotels = data.hotels || [];
+        allCities = data.cities || [];
+        allCountries = data.countries || [];
+        mongoDetails = data.mongo_details || [];
+        renderHotels();
+        if(isAdmin) populateAdminForms();
+    });
+    socket.on('contact_request_response', (data) => {
+        const errorDiv = document.getElementById('request-error');
+        if (data.success) {
+            showToast(data.message, 'success');
+            requestModal.hide();
+            errorDiv.innerText = '';
+        } else {
+            errorDiv.innerText = data.message;
+        }
+    });
+    socket.on('admin_success', (data) => {
+        showToast(data.message, 'success');
+        socket.emit('get_hotels', {});
+    });
+    socket.on('admin_error', (data) => showToast(data.message, 'danger'));
+
+    // --- Запросы данных ---
+    socket.emit('get_hotels', {});
+
+    // --- Логика ---
+    if (isAdmin) {
+        adminPanel.style.display = 'block';
+        saveHotelButton.onclick = handleSaveHotel;
+        cancelHotelEditButton.onclick = switchToCreateHotelMode;
+        document.getElementById('hotel-country').onchange = () => populateCitySelect();
+    }
+
+    submitRequestButton.onclick = handleSubmitRequest;
+
+    function handleSaveHotel() {
+        const hotelId = document.getElementById('hotel-id').value;
+        const sqlData = {
+            name: document.getElementById('hotel-name').value,
+            city_id: parseInt(document.getElementById('hotel-city').value),
+            stars: parseInt(document.getElementById('hotel-stars').value),
+            total_rooms: parseInt(document.getElementById('hotel-rooms').value),
+        };
+        const mongoData = {
+            description: document.getElementById('hotel-description').value,
+            amenities: document.getElementById('hotel-amenities').value.split(',').map(item => item.trim()).filter(Boolean),
+            photo_urls: document.getElementById('hotel-photos').value.split(',').map(item => item.trim()).filter(Boolean),
+        };
+        if(!sqlData.name || !sqlData.city_id || !sqlData.stars || !sqlData.total_rooms) {
+            return alert('Заполните все основные поля отеля!');
+        }
+        const event = hotelId ? 'update_hotel' : 'add_hotel';
+        const payload = { hotel_sql: sqlData, hotel_mongo: mongoData, token: token };
+        if (hotelId) payload.hotel_id = parseInt(hotelId);
+        socket.emit(event, payload);
+        switchToCreateHotelMode();
+    }
+
+    function handleSubmitRequest() {
+        const nameInput = document.getElementById('request-name');
+        const phoneInput = document.getElementById('request-phone');
+        const errorDiv = document.getElementById('request-error');
+        errorDiv.innerText = '';
+
+        if (!validators.fullName(nameInput.value)) { errorDiv.innerText = errorMessages.fullName; return; }
+        if (!validators.phone(phoneInput.value)) { errorDiv.innerText = errorMessages.phone; return; }
+
+        socket.emit('submit_contact_request', {
+            fullName: nameInput.value,
+            phone: phoneInput.value,
+            source: currentRequestSource
+        });
+    }
+
+    function renderHotels() {
+        hotelsListDiv.innerHTML = '';
+        if(allHotels.length === 0) {
+            hotelsListDiv.innerHTML = '<p class="text-center text-muted w-100">Отели не найдены.</p>';
+            return;
+        }
+        allHotels.forEach(hotel => {
+            const city = allCities.find(c => c.id === hotel.city_id);
+            const country = city ? allCountries.find(co => co.id === city.country_id) : null;
+            const details = mongoDetails.find(md => md._id === hotel.id) || {};
+            const photoUrl = (details.photo_urls && details.photo_urls.length > 0) ? details.photo_urls[0] : 'https://via.placeholder.com/300x200.png?text=Image+Not+Found';
+
+            const card = document.createElement('div');
+            card.className = 'card hotel-card';
+            card.innerHTML = `
+                <div class="hotel-photo" style="background-image: url('${photoUrl}')"></div>
+                <div class="hotel-info">
+                    <div>
+                        <h3>
+                            <span>${hotel.name}</span>
+                            <span class="stars">${'★'.repeat(hotel.stars)}<span style="color: #ccc;">${'★'.repeat(5 - hotel.stars)}</span></span>
+                        </h3>
+                        <p class="hotel-location text-muted">${country?.name || ''}, ${city?.name || ''}</p>
+                        <p class="hotel-description">${details.description || 'Описание отсутствует.'}</p>
+                    </div>
+                    <div class="mt-auto">
+                        <div class="amenities">
+                            ${(details.amenities || []).map(a => `<span class="amenity">${a}</span>`).join('')}
+                        </div>
+                        ${!isAdmin ? `<button class="btn btn-primary mt-3" onclick="window.openRequestModal('Отель: ${hotel.name.replace(/'/g, "\\'")}')">Хочу забронировать</button>` : ''}
+                        ${isAdmin ? `<div class="admin-controls mt-3 border-top pt-3"><button class="btn btn-sm btn-outline-secondary" onclick="window.editHotel(${hotel.id})">Редактировать</button><button class="btn btn-sm btn-outline-danger" onclick="window.deleteHotel(${hotel.id})">Удалить</button></div>` : ''}
+                    </div>
+                </div>`;
+            hotelsListDiv.appendChild(card);
+        });
+    }
+
+    function populateAdminForms() {
+        const countrySelect = document.getElementById('hotel-country');
+        countrySelect.innerHTML = '<option value="">-- Выберите страну --</option>';
+        allCountries.forEach(country => countrySelect.innerHTML += `<option value="${country.id}">${country.name}</option>`);
+        populateCitySelect();
+    }
+
+    function populateCitySelect() {
+        const countryId = document.getElementById('hotel-country').value;
+        const citySelect = document.getElementById('hotel-city');
+        citySelect.innerHTML = '<option value="">-- Выберите город --</option>';
+        if (!countryId) return;
+        allCities.filter(c => c.country_id == countryId).forEach(city => {
+            citySelect.innerHTML += `<option value="${city.id}">${city.name}</option>`;
+        });
+    }
+
+    function switchToCreateHotelMode() {
+        document.getElementById('hotel-form-title').innerText = 'Добавить новый отель';
+        saveHotelButton.innerText = 'Сохранить отель';
+        cancelHotelEditButton.style.display = 'none';
+        ['hotel-id', 'hotel-name', 'hotel-country', 'hotel-city', 'hotel-stars', 'hotel-rooms', 'hotel-description', 'hotel-amenities', 'hotel-photos'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+    }
+
+    window.openRequestModal = (source) => {
+        currentRequestSource = source;
+        document.getElementById('request-modal-title').innerText = `Запрос по "${source}"`;
+        const nameInput = document.getElementById('request-name');
+        const phoneInput = document.getElementById('request-phone');
+
+        if (payload && payload.role === 'client') {
+            socket.emit('get_my_profile', {token: token});
+            socket.once('my_profile_data', (data) => {
+                if (data.profile) {
+                    nameInput.value = data.profile.full_name || '';
+                    phoneInput.value = data.profile.contact_phone || '';
+                }
+            });
+        } else {
+            nameInput.value = '';
+            phoneInput.value = '';
+        }
+        requestModal.show();
+    };
+
+    window.editHotel = (hotelId) => {
+        const hotel = allHotels.find(h => h.id === hotelId);
+        const details = mongoDetails.find(md => md._id === hotelId) || {};
+        if (!hotel) return;
+        const city = allCities.find(c => c.id === hotel.city_id);
+
+        document.getElementById('hotel-form-title').innerText = 'Редактирование отеля';
+        saveHotelButton.innerText = 'Сохранить изменения';
+        cancelHotelEditButton.style.display = 'inline-block';
+
+        if (city) {
+            const countrySelect = document.getElementById('hotel-country');
+            countrySelect.value = city.country_id;
+            populateCitySelect();
+            setTimeout(() => {
+                document.getElementById('hotel-city').value = hotel.city_id;
+            }, 50);
+        }
+
+        document.getElementById('hotel-id').value = hotel.id;
+        document.getElementById('hotel-name').value = hotel.name;
+        document.getElementById('hotel-stars').value = hotel.stars;
+        document.getElementById('hotel-rooms').value = hotel.total_rooms;
+        document.getElementById('hotel-description').value = details.description || '';
+        document.getElementById('hotel-amenities').value = (details.amenities || []).join(', ');
+        document.getElementById('hotel-photos').value = (details.photo_urls || []).join(', ');
+
+        adminPanel.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.deleteHotel = (hotelId) => {
+        if (confirm('Вы уверены, что хотите удалить этот отель?')) {
+            socket.emit('delete_hotel', { hotel_id: hotelId, token: token });
+        }
+    };
+});
+</script>
+{% endblock %}

@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+
+{% block title %}Все туры{% endblock %}
+
+{% block head %}
+<style>
+    /* --- ОБЩИЕ СТИЛИ ДЛЯ СТРАНИЦЫ --- */
+    .admin-section { margin-bottom: 2rem; }
+    .templates-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+    .card { background: white; border: 1px solid #ddd; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: end; }
+    .full-width { grid-column: 1 / -1; }
+    .template-controls { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem; }
+    .template-controls button { font-size: 0.8rem; padding: 5px 10px; }
+
+    /* Стили для карточек туров */
+    .tours-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; } /* ЧЕТКАЯ СЕТКА ИЗ 3 КОЛОНОК */
+    .tour-card { display: flex; flex-direction: column; height: 100%; }
+    .card-photo-wrapper { width: 100%; padding-top: 60%; position: relative; background-color: #eee; border-radius: 0.375rem 0.375rem 0 0; overflow: hidden; }
+    .card-photo-wrapper img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+    .tour-card-content { flex-grow: 1; }
+    .price-tag { font-size: 1.5rem; font-weight: bold; color: #007bff; text-align: right; margin: 1rem 0 0 0; }
+    .admin-controls { display: flex; gap: 0.5rem; justify-content: flex-end; }
+    .admin-controls button { font-size: 0.8rem; padding: 5px 10px; }
+
+    /* Прочие стили */
+    .notifications { margin-top: 1.5rem; }
+    .notification { padding: 10px; margin-top: 10px; border-radius: 5px; }
+    .notification.success { background-color: #d4edda; color: #155724; }
+    .notification.error { background-color: #f8d7da; color: #721c24; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1050; }
+    .modal-content { background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .filters-card { margin-bottom: 2rem; }
+    .filters-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end; }
+    .modal-error { color: #dc3545; font-size: 0.9em; margin-top: 10px; min-height: 1.2em;}
+    .form-row { border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid">
+    <div class="text-center mb-5">
+        <h1 id="page-title">Актуальные туры</h1>
+    </div>
+
+    <!-- БЛОК АДМИНИСТРАТОРА -->
+    <div id="admin-view" style="display: none;">
+        <div class="admin-section card">
+            <h2>Шаблоны туров</h2>
+            <div id="tour-templates-list" class="templates-grid"></div>
+            <hr>
+            <h3 id="template-form-title">Создать новый шаблон</h3>
+            <div class="form-grid">
+                <input type="hidden" id="template-id">
+                <input type="text" id="template-name" class="form-control" placeholder="Название шаблона" class="full-width">
+                <select id="template-country" class="form-select"></select>
+                <select id="template-city" class="form-select"></select>
+                <select id="template-hotel" class="form-select"></select>
+                <input type="number" id="template-duration" class="form-control" placeholder="Длительность (дней)">
+                <textarea id="template-itinerary" class="form-control full-width" placeholder="Маршрут и описание" rows="3"></textarea>
+                <input type="text" class="form-control full-width" id="template-photos" placeholder=" ">
+            </div>
+            <div class="mt-3">
+                <button id="saveTemplateButton" class="btn btn-primary">Создать шаблон</button>
+                <button id="cancelTemplateEditButton" class="btn btn-secondary" style="display: none;">Отмена</button>
+            </div>
+        </div>
+
+        <div class="admin-section card">
+            <h2>Поставить тур в расписание</h2>
+            <div class="form-grid">
+                <select id="schedule-template-select" class="form-select"></select>
+                <input type="date" id="schedule-start-date" class="form-control" min="">
+                <input type="number" id="schedule-price" class="form-control" placeholder="Цена за человека">
+                <input type="number" id="schedule-max-seats" class="form-control" placeholder="Мест в группе">
+            </div>
+            <button id="scheduleTourButton" class="btn btn-success mt-3">Добавить в расписание</button>
+        </div>
+    </div>
+
+    <!-- БЛОК КЛИЕНТА И ГОСТЯ -->
+    <div id="client-view">
+        <div id="filters-wrapper" class="card filters-card">
+            <h3 class="h5 mb-3">Поиск тура</h3>
+            <div class="filters-form">
+                <div><label for="filter-country" class="form-label">Страна</label><select id="filter-country" class="form-select"></select></div>
+                <div><label for="filter-city" class="form-label">Город</label><select id="filter-city" class="form-select"></select></div>
+                <div><label for="filter-date" class="form-label">Дата выезда (не раньше)</label><input type="date" id="filter-date" class="form-control"></div>
+                <div class="d-flex">
+                    <button id="applyFiltersButton" class="btn btn-primary me-2">Найти</button>
+                    <button id="resetFiltersButton" class="btn btn-secondary">Сбросить</button>
+                </div>
+            </div>
+        </div>
+        <div class="notifications" id="notifications-block"></div>
+        <div id="tours-list" class="tours-grid">
+            <p class="text-center w-100">Загрузка туров...</p>
+        </div>
+    </div>
+
+    <!-- Модальное окно для бронирования -->
+    <div class="modal fade" id="booking-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Оформление бронирования</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <p><strong>Тур:</strong> <span id="modal-tour-name"></span></p>
+                    <h4>Данные туристов (<span id="modal-people-count"></span> чел.):</h4>
+                    <div id="travelers-forms"></div>
+                    <div id="booking-error" class="text-danger mt-2"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="confirmBookingButton">Подтвердить бронирование</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ВАЛИДАЦИИ ---
+    const validators = {
+        fullName: (val) => /^[а-яА-ЯёЁ\s-]{5,}$/.test(val) && val.split(' ').length >= 2,
+        phone: (val) => /^(\+7|8)\d{10}$/.test(val),
+        passport: (val) => /^\d{4}\s\d{6}$/.test(val)
+    };
+    const errorMessages = {
+        fullName: 'Введите корректное ФИО (кириллица, >= 2 слова).',
+        phone: 'Некорректный формат телефона (пример: +79123456789).',
+        passport: 'Некорректный формат паспорта (пример: 1234 567890).'
+    };
+
+    // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
+    let currentScheduledTours = [];
+    let dictionaries = { countries: [], cities: [], hotels: [], tour_templates: [] };
+    let savedTravelers = [];
+    let bookingDetails = {};
+
+    // --- ЭЛЕМЕНТЫ DOM ---
+    const adminView = document.getElementById('admin-view');
+    const clientView = document.getElementById('client-view');
+    const pageTitle = document.getElementById('page-title');
+    const toursListDiv = document.getElementById('tours-list');
+    const notificationsBlock = document.getElementById('notifications-block');
+    const confirmBookingButton = document.getElementById('confirmBookingButton');
+    const filtersWrapper = document.getElementById('filters-wrapper');
+    const bookingModal = new bootstrap.Modal(document.getElementById('booking-modal'));
+
+    // --- НАЧАЛЬНАЯ НАСТРОЙКА ---
+    const token = getCookie('token');
+    const payload = parseJwt(token);
+    const isAdmin = payload?.role === 'admin';
+
+    if (isAdmin) {
+        adminView.style.display = 'block';
+        pageTitle.innerText = 'Управление турами';
+        filtersWrapper.style.display = 'none';
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('schedule-start-date').setAttribute('min', today);
+    }
+
+    // --- СЛУШАТЕЛИ SOCKET.IO ---
+    socket.on('client_tours_data', (data) => {
+        currentScheduledTours = data.tours || [];
+        renderClientTours();
+    });
+
+    if (isAdmin) {
+        socket.on('admin_dictionaries', (data) => {
+            dictionaries = data;
+            populateAdminForms();
+            renderTourTemplates();
+        });
+        socket.on('admin_success', (data) => {
+            showToast(data.message, 'success');
+            socket.emit('get_admin_data', { token: token });
+            socket.emit('get_tours_for_client', {});
+        });
+        socket.on('template_details_data', (data) => {
+            document.getElementById('template-itinerary').value = data.itinerary || '';
+            document.getElementById('template-photos').value = (data.photo_urls || []).join(', ');
+        });
+    }
+
+    if (!isAdmin) {
+        socket.on('filter_dictionaries_data', (data) => {
+            dictionaries.countries = data.countries || [];
+            dictionaries.cities = data.cities || [];
+            populateFilterForms();
+        });
+    }
+
+    if (payload) {
+        socket.on('saved_travelers_data', (data) => { savedTravelers = data.travelers || []; });
+        socket.on('availability_response', handleAvailabilityResponse);
+        socket.on('booking_response', handleBookingResponse);
+    }
+    socket.on('admin_error', (data) => showToast(data.message, 'danger'));
+    socket.on('error', (data) => showToast(data.message, 'danger'));
+
+    // --- ЗАПРОСЫ ДАННЫХ ПРИ ЗАГРУЗКЕ ---
+    if (isAdmin) {
+        socket.emit('get_admin_data', { token: token });
+    } else {
+        socket.emit('get_filter_dictionaries', {});
+    }
+    socket.emit('get_tours_for_client', {});
+    if (payload) socket.emit('get_saved_travelers', { token: token });
+
+    // --- ФУНКЦИИ ОТРИСОВКИ ---
+    function renderClientTours() {
+        toursListDiv.innerHTML = '';
+        if (currentScheduledTours.length === 0) {
+            toursListDiv.innerHTML = '<div class="col-12 text-center"><p class="lead text-muted">По вашему запросу туров не найдено.</p></div>';
+            return;
+        }
+        currentScheduledTours.forEach(tour => {
+            const photoUrl = (tour.photo_urls && tour.photo_urls.length > 0) ? tour.photo_urls[0] : 'https://via.placeholder.com/400x250.png?text=Tour+Image';
+            const col = document.createElement('div');
+            // Используем классы Bootstrap для колонок
+            col.className = 'col';
+            col.innerHTML = `
+                <div class="card tour-card h-100">
+                    <div class="card-photo-wrapper">
+                        <img src="${photoUrl}" alt="${tour.name}">
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">${tour.name}</h5>
+                        <p class="card-text small text-muted">${tour.country}, ${tour.city}</p>
+                        <p class="card-text small"><strong>Отель:</strong> ${tour.hotel_name} (${'★'.repeat(tour.stars)})</p>
+                        <p class="card-text flex-grow-1">${tour.description.substring()}</p>
+                        <p class="small text-muted"><strong>Дата заезда:</strong> ${tour.start_date} | <strong>Длительность:</strong> ${tour.duration_days} дней</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 d-flex justify-content-between align-items-center">
+                        <span class="price-tag">${tour.price} руб.</span>
+                        ${!isAdmin ? `<button class="btn btn-primary btn-sm" onclick="window.startBookingProcess(${tour.scheduled_tour_id})">Забронировать</button>` : ''}
+                    </div>
+                    ${isAdmin ? `<div class="admin-controls p-2"><button class="btn btn-danger btn-sm" onclick="window.deleteScheduledTour(${tour.scheduled_tour_id})">Удалить</button></div>` : ''}
+                </div>`;
+            toursListDiv.appendChild(col);
+        });
+    }
+
+    function renderTourTemplates() {
+        const listDiv = document.getElementById('tour-templates-list');
+        listDiv.innerHTML = '';
+        if (!dictionaries.tour_templates || dictionaries.tour_templates.length === 0) { listDiv.innerHTML = '<p class="text-muted small">Шаблонов нет.</p>'; return; }
+        dictionaries.tour_templates.forEach(tt => {
+            const hotel = dictionaries.hotels.find(h => h.id === tt.hotel_id);
+            const item = document.createElement('div');
+            item.className = 'list-group-item d-flex justify-content-between align-items-center';
+            item.innerHTML = `
+                <div>
+                    <strong>${tt.name}</strong>
+                    <div class="small text-muted">Отель: ${hotel ? hotel.name : 'Неизвестно'} | ${tt.duration_days} дн.</div>
+                </div>
+                <div class="template-controls">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="window.editTemplate(${tt.id})">⚙️</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="window.deleteTemplate(${tt.id})">❌</button>
+                </div>`;
+            listDiv.appendChild(item);
+        });
+    }
+
+    // --- ЛОГИКА ФИЛЬТРОВ ---
+    const countryFilter = document.getElementById('filter-country');
+    const cityFilter = document.getElementById('filter-city');
+    const dateFilter = document.getElementById('filter-date');
+    const applyFiltersButton = document.getElementById('applyFiltersButton');
+    const resetFiltersButton = document.getElementById('resetFiltersButton');
+    countryFilter.onchange = () => populateCitySelect(cityFilter, countryFilter.value, null);
+    applyFiltersButton.onclick = applyFilters;
+    resetFiltersButton.onclick = resetFilters;
+    function populateFilterForms() {
+        countryFilter.innerHTML = '<option value="">Любая</option>';
+        (dictionaries.countries || []).forEach(c => countryFilter.innerHTML += `<option value="${c.id}">${c.name}</option>`);
+        populateCitySelect(cityFilter, null, null);
+    }
+    function applyFilters() { socket.emit('get_tours_for_client', { filters: { country_id: countryFilter.value, city_id: cityFilter.value, start_date: dateFilter.value } }); }
+    function resetFilters() { countryFilter.value = ''; populateCitySelect(cityFilter, '', null); dateFilter.value = ''; socket.emit('get_tours_for_client', {}); }
+
+    // --- ЛОГИКА АДМИН-ПАНЕЛИ ---
+    if (isAdmin) {
+        const saveTemplateButton = document.getElementById('saveTemplateButton');
+        const cancelTemplateEditButton = document.getElementById('cancelTemplateEditButton');
+        const scheduleTourButton = document.getElementById('scheduleTourButton');
+        const templateCountrySelect = document.getElementById('template-country');
+        const templateCitySelect = document.getElementById('template-city');
+        templateCountrySelect.onchange = () => populateCitySelect(templateCitySelect, templateCountrySelect.value, document.getElementById('template-hotel'));
+        templateCitySelect.onchange = () => populateHotelSelect(document.getElementById('template-hotel'), templateCitySelect.value);
+        saveTemplateButton.onclick = handleSaveTemplate;
+        cancelTemplateEditButton.onclick = switchToCreateTemplateMode;
+        scheduleTourButton.onclick = handleScheduleTour;
+    }
+
+    function populateAdminForms() {
+        const countrySelect = document.getElementById('template-country');
+        const templateSelect = document.getElementById('schedule-template-select');
+        countrySelect.innerHTML = '<option value="">-- Выберите страну --</option>';
+        templateSelect.innerHTML = '<option value="">-- Выберите шаблон --</option>';
+        (dictionaries.countries || []).forEach(c => countrySelect.innerHTML += `<option value="${c.id}">${c.name}</option>`);
+        (dictionaries.tour_templates || []).forEach(tt => templateSelect.innerHTML += `<option value="${tt.id}">${tt.name}</option>`);
+        populateCitySelect(document.getElementById('template-city'), null, document.getElementById('template-hotel'));
+    }
+    function populateCitySelect(citySelectElement, countryId, hotelSelectElementToReset) {
+        citySelectElement.innerHTML = '<option value="">-- Выберите город --</option>';
+        if (hotelSelectElementToReset) hotelSelectElementToReset.innerHTML = '<option value="">-- Сначала выберите город --</option>';
+        if (!countryId) return;
+        (dictionaries.cities || []).filter(c => c.country_id == countryId).forEach(c => citySelectElement.innerHTML += `<option value="${c.id}">${c.name}</option>`);
+    }
+    function populateHotelSelect(hotelSelectElement, cityId) {
+        hotelSelectElement.innerHTML = '<option value="">-- Выберите отель --</option>';
+        if (!cityId) return;
+        (dictionaries.hotels || []).filter(h => h.city_id == cityId).forEach(h => hotelSelectElement.innerHTML += `<option value="${h.id}">${h.name}</option>`);
+    }
+
+    function handleSaveTemplate() {
+        const templateId = document.getElementById('template-id').value;
+        const sqlData = {
+            name: document.getElementById('template-name').value,
+            hotel_id: parseInt(document.getElementById('template-hotel').value),
+            duration_days: parseInt(document.getElementById('template-duration').value),
+        };
+        const mongoData = {
+            itinerary: document.getElementById('template-itinerary').value,
+            photo_urls: document.getElementById('template-photos').value.split(',').map(item => item.trim()).filter(Boolean)
+        };
+        if (!sqlData.name || !sqlData.hotel_id || !sqlData.duration_days) return alert('Заполните все поля шаблона!');
+        const event = templateId ? 'update_tour_template' : 'add_tour_template';
+        const payload = { template_sql: sqlData, template_mongo: mongoData, token: token };
+        if (templateId) payload.template_id = parseInt(templateId);
+        socket.emit(event, payload);
+        switchToCreateTemplateMode();
+    }
+
+    function handleScheduleTour() {
+        const data = {
+            template_id: document.getElementById('schedule-template-select').value,
+            start_date: document.getElementById('schedule-start-date').value,
+            price: document.getElementById('schedule-price').value,
+            max_seats: document.getElementById('schedule-max-seats').value,
+        };
+        if (!data.template_id || !data.start_date || !data.price || !data.max_seats) return alert('Заполните все поля для расписания!');
+        socket.emit('schedule_tour', { ...data, token: token });
+    }
+
+    window.editTemplate = (templateId) => {
+        const template = dictionaries.tour_templates.find(t => t.id === templateId);
+        if (!template) return;
+        const hotel = dictionaries.hotels.find(h => h.id === template.hotel_id);
+        const city = hotel ? dictionaries.cities.find(c => c.id === hotel.city_id) : null;
+
+        document.getElementById('template-form-title').innerText = 'Редактирование шаблона';
+        document.getElementById('saveTemplateButton').innerText = 'Сохранить изменения';
+        document.getElementById('cancelTemplateEditButton').style.display = 'inline-block';
+
+        document.getElementById('template-id').value = template.id;
+        document.getElementById('template-name').value = template.name;
+        document.getElementById('template-duration').value = template.duration_days;
+
+        if (city) {
+            const countrySelect = document.getElementById('template-country');
+            const citySelect = document.getElementById('template-city');
+            const hotelSelect = document.getElementById('template-hotel');
+            countrySelect.value = city.country_id;
+            populateCitySelect(citySelect, city.country_id, hotelSelect);
+            setTimeout(() => {
+                citySelect.value = city.id;
+                populateHotelSelect(hotelSelect, city.id);
+                setTimeout(() => { hotelSelect.value = hotel.id; }, 50);
+            }, 50);
+        }
+        socket.emit('get_template_details', {template_id: templateId, token: token});
+        adminView.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.deleteTemplate = (templateId) => {
+        if (confirm('Удалить этот шаблон?')) socket.emit('delete_tour_template', { template_id: templateId, token: token });
+    };
+
+    window.deleteScheduledTour = (tourId) => {
+        if (confirm('Удалить этот тур из расписания?')) socket.emit('delete_scheduled_tour', { scheduled_tour_id: tourId, token: token });
+    };
+
+    function switchToCreateTemplateMode() {
+        document.getElementById('template-form-title').innerText = 'Создать новый шаблон';
+        document.getElementById('saveTemplateButton').innerText = 'Создать шаблон';
+        document.getElementById('cancelTemplateEditButton').style.display = 'none';
+        ['template-id', 'template-name', 'template-country', 'template-city', 'template-hotel', 'template-duration', 'template-itinerary', 'template-photos'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        populateCitySelect(document.getElementById('template-city'), '', document.getElementById('template-hotel'));
+    }
+
+    // --- ЛОГИКА БРОНИРОВАНИЯ ---
+    window.startBookingProcess = (scheduledTourId) => {
+        if (!token) { alert('Для бронирования необходимо войти в систему.'); window.location.href = '/auth'; return; }
+        const peopleCount = prompt('На сколько человек забронировать тур?', '1');
+        if (peopleCount && !isNaN(parseInt(peopleCount)) && parseInt(peopleCount) > 0) {
+            socket.emit('check_availability', {
+                scheduled_tour_id: scheduledTourId,
+                people: parseInt(peopleCount),
+                token: token
+            });
+        }
+    };
+
+    function handleAvailabilityResponse(data) {
+        notificationsBlock.style.display = 'block';
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `notification ${data.success ? 'success' : 'error'}`;
+        messageDiv.innerText = data.message;
+        notificationsBlock.innerHTML = '';
+        notificationsBlock.appendChild(messageDiv);
+        if (data.success) {
+            const bookButton = document.createElement('button');
+            bookButton.className = 'btn btn-success mt-2';
+            bookButton.innerText = 'Оформить бронь';
+            bookButton.onclick = () => showBookingModal(data.params_for_booking);
+            messageDiv.appendChild(bookButton);
+        }
+    }
+
+    function handleBookingResponse(data) {
+        const errorDiv = document.getElementById('booking-error');
+        if (data.success) {
+            bookingModal.hide();
+            showToast(data.message, 'success');
+            socket.emit('get_tours_for_client', {});
+        } else {
+            errorDiv.innerText = data.message;
+        }
+    }
+
+    function handleConfirmBooking() {
+        const errorDiv = document.getElementById('booking-error');
+        errorDiv.innerText = '';
+        const names = document.querySelectorAll('.traveler-name');
+        const passports = document.querySelectorAll('.traveler-passport');
+        const phones = document.querySelectorAll('.traveler-phone');
+        const travelers = [];
+        for (let i = 0; i < names.length; i++) {
+            const fullName = names[i].value;
+            const passport = passports[i].value;
+            const phone = phones[i].value;
+            if (!validators.fullName(fullName)) { errorDiv.innerText = `Ошибка в данных Туриста ${i+1}: ${errorMessages.fullName}`; return; }
+            if (!validators.passport(passport)) { errorDiv.innerText = `Ошибка в данных Туриста ${i+1}: ${errorMessages.passport}`; return; }
+            if (phone && !validators.phone(phone)) { errorDiv.innerText = `Ошибка в данных Туриста ${i+1}: ${errorMessages.phone}`; return; }
+            travelers.push({ fullName: fullName, passport: passport, phone: phone });
+        }
+        socket.emit('create_booking', {
+            booking_details: bookingDetails,
+            travelers: travelers,
+            token: getCookie('token')
+        });
+    }
+
+    function showBookingModal(details) {
+        const travelersFormsDiv = document.getElementById('travelers-forms');
+        const tour = currentScheduledTours.find(t => t.scheduled_tour_id === details.scheduled_tour_id);
+        bookingDetails = details;
+        document.getElementById('modal-tour-name').innerText = tour?.name || 'Неизвестный тур';
+        document.getElementById('modal-people-count').innerText = details.people;
+        travelersFormsDiv.innerHTML = '';
+        for (let i = 1; i <= details.people; i++) {
+            let selectHTML = `<select class="form-select form-select-sm traveler-select" data-form-id="${i-1}"><option value="">-- Ввести вручную --</option>`;
+            (savedTravelers || []).forEach(t => { selectHTML += `<option value="${t.id}">${t.full_name}</option>`; });
+            selectHTML += '</select>';
+            const travelerDiv = document.createElement('div');
+            travelerDiv.className = 'form-row';
+            travelerDiv.innerHTML = `
+                <p><strong>Турист ${i}:</strong></p>
+                <label class="form-label small">Выбрать из сохраненных:</label>${selectHTML}
+                <input type="text" class="form-control traveler-name" id="traveler-name-${i-1}" placeholder="ФИО">
+                <input type="text" class="form-control traveler-passport" id="traveler-passport-${i-1}" placeholder="Паспорт (1234 567890)">
+                <input type="tel" class="form-control traveler-phone" id="traveler-phone-${i-1}" placeholder="Телефон (+79123456789)">`;
+            travelersFormsDiv.appendChild(travelerDiv);
+        }
+        document.querySelectorAll('.traveler-select').forEach(select => {
+            select.onchange = (event) => {
+                const travelerId = event.target.value;
+                const formId = event.target.dataset.formId;
+                const selected = savedTravelers.find(t => t.id == travelerId);
+                document.getElementById(`traveler-name-${formId}`).value = selected ? selected.full_name : '';
+                document.getElementById(`traveler-passport-${formId}`).value = selected ? selected.passport : '';
+                document.getElementById(`traveler-phone-${formId}`).value = selected ? selected.phone : '';
+            };
+        });
+        bookingModal.show();
+    }
+
+    function hideBookingModal() {
+        bookingModal.hide();
+    }
+
+    if (payload) {
+        confirmBookingButton.onclick = handleConfirmBooking;
+        document.getElementById('cancelBookingButton').onclick = hideBookingModal;
+    }
+});
+</script>
+{% endblock %}

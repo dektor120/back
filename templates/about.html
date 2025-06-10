@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}О нас{% endblock %}
+
+{% block head %}
+<style>
+    .about-header {
+        background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1522199755839-a2bacb67c546?q=80&w=2072');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        text-align: center;
+        padding: 5rem 1rem;
+    }
+    .about-header h1 {
+        font-size: 3rem;
+        margin: 0;
+    }
+    .section {
+        padding: 3rem 1rem;
+    }
+    .section h2 {
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+    }
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+    .team-member {
+        text-align: center;
+    }
+    .team-member img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1rem;
+        border: 3px solid #ddd;
+    }
+    .contact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    .contact-card {
+        padding: 1.5rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    .contact-card h3 {
+        margin-top: 0;
+        color: #007bff;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="about-header">
+    <h1>Наша миссия — ваше идеальное путешествие</h1>
+</div>
+
+<div class="section">
+    <h2>Наша история</h2>
+    <p>Компания "ТурСервис" была основана в 2020 году группой путешественников, которые верили, что планирование отдыха должно быть таким же приятным, как и сам отдых. Устав от сложных и непрозрачных систем бронирования, мы решили создать собственный сервис, где все просто, понятно и честно. С тех пор мы помогли тысячам клиентов открыть для себя новые уголки планеты, предлагая только проверенные и качественные туристические продукты.</p>
+</div>
+
+<div class="section" style="background-color: #f8f9fa;">
+    <h2>Наша команда</h2>
+    <div class="team-grid">
+        <div class="team-member">
+            <img src="https://sun9-66.userapi.com/impg/denq5fjd2hpts47Ni3VzPQoIb0wTD5er0Y211Q/Ulz6gEREl9E.jpg?size=1438x2160&quality=95&sign=0d6214ef1f6bc5aba19ada31614024f7&type=album" alt="Фото сотрудника">
+            <h3>Литвиненко Матвей</h3>
+            <p><strong>Основатель и CEO</strong></p>
+            <p>Заядлый путешественник, посетивший более 50 стран. Отвечает за стратегию и развитие компании.</p>
+        </div>
+        <div class="team-member">
+            <img src="https://sun9-6.userapi.com/impg/SzAePtj8Y1bZ-8NAZmMjlKniQYZFjaqfUWEMhQ/pqg04EcSsA8.jpg?size=516x1080&quality=96&sign=0a0162b6a21a1d6822b7d44144d9ea81&type=album" alt="Фото сотрудника">
+            <h3>Никита Локтионов</h3>
+            <p><strong>Руководитель отдела бронирования</strong></p>
+            <p>Эксперт по направлениям Юго-Восточной Азии и Европы. Найдет для вас лучший отель в любой точке мира.</p>
+        </div>
+        <div class="team-member">
+            <img src="https://sun9-73.userapi.com/impg/Yo8qqJoHZkJgfBWQpM3u41L7VAU0z5AgBW_1Og/bHP3faozlws.jpg?size=2560x1707&quality=95&sign=b956458d25c9daee8acbaaf2d6b452ea&type=album" alt="Фото сотрудника">
+            <h3>Галина Ванькаева</h3>
+            <p><strong>Специалист по поддержке клиентов</strong></p>
+            <p>Готова ответить на любой ваш вопрос 24/7 и помочь в любой ситуации во время вашего путешествия.</p>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Наши контакты</h2>
+    <div class="contact-grid">
+        <div class="contact-card">
+            <h3>📍 Наши офисы</h3>
+            <p><strong>Главный офис:</strong> г. Томск, ул. Ленина, д. 157/1</p>
+            <p><strong>Филиал:</strong> г. Новосибирск, ул. Гоголя, д. 7</p>
+        </div>
+        <div class="contact-card">
+            <h3>📞 Связь с нами</h3>
+            <p><strong>Телефон:</strong> 8 (800) 666-22-22 (бесплатно по России)</p>
+            <p><strong>Email:</strong> <a href="mailto:contact@turservice.mail.com">contact@turservice.example.com</a></p>
+        </div>
+         <div class="contact-card">
+            <h3>💬 Мы в соцсетях</h3>
+            <p><strong>Telegram:</strong> @MichaelSrp</p>
+            <p>Следите за горящими турами и специальными предложениями!</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

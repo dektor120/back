@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Админ-панель{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Панель администратора</h1>
+</div>
+
+<p class="lead">Здесь отображаются новые заявки на обратный звонок и последние бронирования в системе.</p>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header fw-bold">
+                <i class="bi bi-telephone-inbound-fill me-2"></i>Новые заявки на консультацию
+            </div>
+            <div class="card-body p-0">
+                <ul id="requests-list" class="list-group list-group-flush">
+                    <li class="list-group-item">Загрузка...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+         <div class="card h-100">
+            <div class="card-header fw-bold">
+                <i class="bi bi-clock-history me-2"></i>Обработанные заявки
+            </div>
+            <div class="card-body p-0">
+                <ul id="completed-requests-list" class="list-group list-group-flush">
+                    <li class="list-group-item">Загрузка...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header fw-bold">
+                <i class="bi bi-journal-check me-2"></i>Последние бронирования
+            </div>
+            <div class="card-body p-0">
+                 <ul id="bookings-list" class="list-group list-group-flush">
+                    <li class="list-group-item">Загрузка...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const token = getCookie('token');
+    const payload = parseJwt(token);
+    if (!payload || payload.role !== 'admin') {
+        alert('Доступ запрещен.');
+        window.location.href = '/';
+        return;
+    }
+
+    const requestsList = document.getElementById('requests-list');
+    const completedRequestsList = document.getElementById('completed-requests-list');
+    const bookingsList = document.getElementById('bookings-list');
+
+    socket.on('admin_dashboard_data', (data) => {
+        renderRequests(data.requests, data.completed_requests);
+        renderBookings(data.bookings);
+    });
+
+    socket.on('new_contact_request_admin', () => {
+        showToast('Получена новая заявка!', 'info');
+        socket.emit('get_admin_dashboard_data', { token: token });
+    });
+
+    socket.emit('get_admin_dashboard_data', { token: token });
+    socket.emit('join_admin_room', { token: token });
+
+    function renderRequests(newRequests = [], completedRequests = []) {
+        requestsList.innerHTML = '';
+        if (newRequests.length === 0) {
+            requestsList.innerHTML = '<li class="list-group-item text-muted">Новых заявок нет.</li>';
+        } else {
+            newRequests.forEach(r => {
+                const item = document.createElement('li');
+                item.className = 'list-group-item d-flex justify-content-between align-items-center';
+                item.innerHTML = `
+                    <div>
+                        <strong>${r.full_name}</strong> (${r.phone})
+                        <div class="small text-muted">Источник: ${r.source} (${r.created_at})</div>
+                    </div>
+                    <button class="btn btn-sm btn-success" onclick="window.completeRequest(${r.id})">Обработано</button>
+                `;
+                requestsList.appendChild(item);
+            });
+        }
+
+        completedRequestsList.innerHTML = '';
+        if (completedRequests.length === 0) {
+            completedRequestsList.innerHTML = '<li class="list-group-item text-muted">Нет обработанных заявок.</li>';
+        } else {
+            completedRequests.forEach(r => {
+                const item = document.createElement('li');
+                item.className = 'list-group-item text-muted';
+                item.innerHTML = `
+                    <div>
+                        <strong>${r.full_name}</strong> (${r.phone})
+                        <div class="small">Источник: ${r.source} (${r.created_at})</div>
+                    </div>
+                    <span><i class="bi bi-check-circle-fill text-success"></i></span>`;
+                completedRequestsList.appendChild(item);
+            });
+        }
+    }
+
+    function renderBookings(bookings = []) {
+        bookingsList.innerHTML = '';
+        if (bookings.length === 0) {
+            bookingsList.innerHTML = '<li class="list-group-item text-muted">Бронирований пока нет.</li>';
+        } else {
+            bookings.forEach(b => {
+                const item = document.createElement('li');
+                item.className = 'list-group-item d-flex justify-content-between align-items-center';
+                item.innerHTML = `
+                    <span><strong>${b.user_login}</strong> забронировал(а) <i>${b.tour_name}</i></span>
+                    <span class="badge bg-info rounded-pill">${b.status}</span>`;
+                bookingsList.appendChild(item);
+            });
+        }
+    }
+    
+    window.completeRequest = (requestId) => {
+        if (confirm('Отметить эту заявку как обработанную?')) {
+            socket.emit('complete_request', { request_id: requestId, token: token });
+        }
+    };
+});
+</script>
+{% endblock %}

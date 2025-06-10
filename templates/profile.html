@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block head %}
+<style>
+    .profile-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start; }
+    .traveler-item { display: flex; justify-content: space-between; align-items: center; }
+    .traveler-controls button { font-size: 0.8em; padding: 5px 8px; background: none; border: none; cursor: pointer; }
+    .booking-card { transition: all 0.2s ease-in-out; }
+    .booking-card[data-status="paid"] { border-left: 5px solid #198754; }
+    .booking-card[data-status="pending_payment"] { border-left: 5px solid #ffc107; }
+    .booking-card[data-status="cancelled"] { border-left: 5px solid #dc3545; background-color: #f8f9fa; opacity: 0.8; }
+    .error-message { color: #dc3545; font-size: 0.9em; margin-top: 5px; min-height: 1.2em; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Личный кабинет</h1>
+    </div>
+
+    <div class="row g-5">
+        <!-- Основная колонка -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">Мой профиль</h3>
+                    <p class="card-text text-muted">Эта информация будет использоваться для автозаполнения форм и связи с вами.</p>
+                    <div id="profile-status-message" class="alert alert-warning" style="display: none;"></div>
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label for="profile-full-name" class="form-label">ФИО</label>
+                            <input type="text" class="form-control" id="profile-full-name" placeholder="Иванов Иван Иванович">
+                        </div>
+                        <div class="col-md-6">
+                             <label for="profile-birth-date" class="form-label">Дата рождения</label>
+                            <input type="date" class="form-control" id="profile-birth-date">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="profile-contact-phone" class="form-label">Контактный телефон</label>
+                            <input type="tel" class="form-control" id="profile-contact-phone" placeholder="+79123456789">
+                        </div>
+                    </div>
+                    <button id="saveProfileButton" class="btn btn-primary mt-3">Сохранить профиль</button>
+                    <div id="profile-error" class="error-message"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h4">Мои бронирования</h2>
+                    <div id="my-bookings-list"><p>Загрузка...</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Боковая колонка список туристов -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 id="traveler-form-title" class="h5">Список туристов</h3>
+                    <p class="small text-muted">Сохраните данные попутчиков для быстрого бронирования.</p>
+                    <ul id="saved-travelers-list" class="list-group list-group-flush mb-3"></ul>
+                    <hr>
+                    <h4 id="traveler-form-h4" class="h6">Добавить / Редактировать туриста</h4>
+                    <input type="hidden" id="traveler-id">
+                    <div class="mb-2">
+                        <input type="text" class="form-control form-control-sm" id="new-traveler-name" placeholder="ФИО">
+                    </div>
+                    <div class="mb-2">
+                        <input type="text" class="form-control form-control-sm" id="new-traveler-passport" placeholder="Паспорт (1234 567890)">
+                    </div>
+                    <div class="mb-2">
+                        <input type="tel" class="form-control form-control-sm" id="new-traveler-phone" placeholder="Телефон (+7...)">
+                    </div>
+                    <div id="traveler-error" class="text-danger small mb-2"></div>
+                    <button id="saveTravelerButton" class="btn btn-primary btn-sm">Сохранить</button>
+                    <button id="cancelTravelerEditButton" class="btn btn-secondary btn-sm" style="display: none;">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- ВАЛИДАЦИЯ ---
+    const validators = {
+        fullName: (val) => /^[а-яА-ЯёЁ\s-]{5,}$/.test(val) && val.split(' ').length >= 2,
+        phone: (val) => /^(\+7|8)\d{10}$/.test(val),
+        passport: (val) => /^\d{4}\s\d{6}$/.test(val)
+    };
+    const errorMessages = {
+        fullName: 'Введите корректное ФИО (кириллица, >= 2 слова).',
+        phone: 'Некорректный формат телефона (пример: +79123456789).',
+        passport: 'Некорректный формат паспорта (пример: 1234 567890).'
+    };
+
+    // --- ПРОВЕРКА АВТОРИЗАЦИИ ---
+    const token = getCookie('token');
+    if (!token) { window.location.href = '/auth'; return; }
+    const payload = parseJwt(token);
+    if (payload && payload.role === 'admin') {
+        alert('У администратора нет личного кабинета. Перенаправление на панель управления.');
+        window.location.href = '/admin_dashboard';
+        return;
+    }
+
+    let savedTravelers = [];
+
+    // --- ЭЛЕМЕНТЫ DOM ---
+    const saveTravelerButton = document.getElementById('saveTravelerButton');
+    const cancelTravelerEditButton = document.getElementById('cancelTravelerEditButton');
+    const saveProfileButton = document.getElementById('saveProfileButton');
+    const profileStatusMessage = document.getElementById('profile-status-message');
+    const profileErrorDiv = document.getElementById('profile-error');
+    const travelerErrorDiv = document.getElementById('traveler-error');
+
+    // --- СЛУШАТЕЛИ ---
+    socket.on('my_bookings_data', (data) => renderMyBookings(data.bookings));
+    socket.on('saved_travelers_data', (data) => {
+        savedTravelers = data.travelers || [];
+        renderSavedTravelers(savedTravelers);
+    });
+
+    socket.on('my_profile_data', (data) => {
+        if (data.is_filled === false) {
+             profileStatusMessage.innerHTML = `<strong>Пожалуйста, заполните ваш профиль. Это обязательно для дальнейшей работы с сайтом.</strong>`;
+             profileStatusMessage.className = 'alert alert-warning mt-2';
+        }
+        const profile = data.profile;
+        if (profile) {
+            document.getElementById('profile-full-name').value = profile.full_name || '';
+            document.getElementById('profile-birth-date').value = profile.birth_date || '';
+            document.getElementById('profile-contact-phone').value = profile.contact_phone || '';
+        }
+    });
+
+    socket.on('profile_update_response', (data) => {
+        profileErrorDiv.innerText = '';
+        if (data.success) {
+            showToast(data.message, 'success');
+            profileStatusMessage.innerHTML = '';
+            profileStatusMessage.className = '';
+        }
+        else { profileErrorDiv.innerText = data.message; }
+    });
+
+    socket.on('traveler_added_success', (data) => { showToast(data.message); socket.emit('get_saved_travelers', { token: token }); });
+    socket.on('traveler_updated_success', (data) => { showToast(data.message); socket.emit('get_saved_travelers', { token: token }); });
+    socket.on('traveler_deleted_success', (data) => { showToast(data.message); socket.emit('get_saved_travelers', { token: token }); });
+    socket.on('booking_status_updated', (data) => { showToast(data.message); socket.emit('get_my_bookings', { token: token }); });
+    socket.on('error', (data) => showToast(data.message, 'danger'));
+
+    // --- ЗАПРОСЫ ДАННЫХ ПРИ ЗАГРУЗКЕ ---
+    socket.emit('get_my_bookings', { token: token });
+    socket.emit('get_saved_travelers', { token: token });
+    socket.emit('get_my_profile', { token: token });
+
+    // --- ОБРАБОТЧИКИ КНОПОК ---
+    saveProfileButton.onclick = handleSaveProfile;
+    saveTravelerButton.onclick = handleSaveTraveler;
+    cancelTravelerEditButton.onclick = switchToAddTravelerMode;
+
+    // --- ЛОГИКА ---
+    function handleSaveProfile() {
+        const profileData = {
+            fullName: document.getElementById('profile-full-name').value,
+            birthDate: document.getElementById('profile-birth-date').value,
+            contactPhone: document.getElementById('profile-contact-phone').value,
+        };
+        profileErrorDiv.innerText = '';
+        if (!validators.fullName(profileData.fullName)) { profileErrorDiv.innerText = errorMessages.fullName; return; }
+        if (!validators.phone(profileData.contactPhone)) { profileErrorDiv.innerText = errorMessages.phone; return; }
+        if (!profileData.birthDate) { profileErrorDiv.innerText = 'Укажите дату рождения.'; return; }
+        socket.emit('update_my_profile', { profile: profileData, token: token });
+    }
+
+    function handleSaveTraveler() {
+        const travelerId = document.getElementById('traveler-id').value;
+        const travelerData = {
+            fullName: document.getElementById('new-traveler-name').value,
+            passport: document.getElementById('new-traveler-passport').value,
+            phone: document.getElementById('new-traveler-phone').value,
+        };
+        travelerErrorDiv.innerText = '';
+        if (!validators.fullName(travelerData.fullName)) { travelerErrorDiv.innerText = errorMessages.fullName; return; }
+        if (!validators.passport(travelerData.passport)) { travelerErrorDiv.innerText = errorMessages.passport; return; }
+        if (travelerData.phone && !validators.phone(travelerData.phone)) { travelerErrorDiv.innerText = errorMessages.phone; return; }
+        const event = travelerId ? 'update_saved_traveler' : 'add_saved_traveler';
+        const payload = { traveler: travelerData, token: token };
+        if (travelerId) payload.traveler_id = parseInt(travelerId);
+        socket.emit(event, payload);
+        switchToAddTravelerMode();
+    }
+
+    window.updateBookingStatus = (bookingId, status) => {
+        const actionText = status === 'paid' ? 'оплатить' : 'отменить';
+        if (confirm(`Вы уверены, что хотите ${actionText} эту бронь?`)) {
+            socket.emit('update_booking_status', { booking_id: bookingId, status: status, token: token });
+        }
+    };
+
+    window.editTraveler = (travelerId) => {
+        const traveler = savedTravelers.find(t => t.id === travelerId);
+        if (!traveler) return;
+        document.getElementById('traveler-form-h4').innerText = 'Редактирование туриста';
+        document.getElementById('traveler-id').value = traveler.id;
+        document.getElementById('new-traveler-name').value = traveler.full_name;
+        document.getElementById('new-traveler-passport').value = traveler.passport;
+        document.getElementById('new-traveler-phone').value = traveler.phone;
+        saveTravelerButton.innerText = 'Сохранить изменения';
+        cancelTravelerEditButton.style.display = 'inline-block';
+    };
+
+    window.deleteTraveler = (travelerId) => {
+        if (confirm('Вы уверены, что хотите удалить этого туриста из списка туристов?')) {
+            socket.emit('delete_saved_traveler', { traveler_id: travelerId, token: getCookie('token') });
+        }
+    };
+
+    function switchToAddTravelerMode() {
+        document.getElementById('traveler-form-h4').innerText = 'Добавить нового туриста';
+        saveTravelerButton.innerText = 'Сохранить';
+        cancelTravelerEditButton.style.display = 'none';
+        document.getElementById('traveler-id').value = '';
+        document.getElementById('new-traveler-name').value = '';
+        document.getElementById('new-traveler-passport').value = '';
+        document.getElementById('new-traveler-phone').value = '';
+        travelerErrorDiv.innerText = '';
+    }
+
+    function renderMyBookings(bookings = []) {
+        const listDiv = document.getElementById('my-bookings-list');
+        listDiv.innerHTML = '';
+        if (bookings.length === 0) { listDiv.innerHTML = '<p class="text-muted">У вас пока нет бронирований.</p>'; return; }
+        bookings.forEach(b => {
+            const card = document.createElement('div');
+            card.className = 'card booking-card p-3';
+            card.dataset.status = b.status;
+            let buttons = '';
+            if (b.status === 'pending_payment') {
+                buttons = `<button class="btn btn-success btn-sm" onclick="window.updateBookingStatus(${b.id}, 'paid')">Оплатить</button>
+                           <button class="btn btn-outline-danger btn-sm" onclick="window.updateBookingStatus(${b.id}, 'cancelled')">Отменить</button>`;
+            }
+            card.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="h6 card-title mb-1">${b.tour_name}</h5>
+                        <p class="card-text small text-muted mb-2">Дата заезда: ${b.start_date}</p>
+                    </div>
+                    <span class="badge text-bg-light align-self-start">${b.status}</span>
+                </div>
+                <div class="mt-2">${buttons}</div>
+            `;
+            listDiv.appendChild(card);
+        });
+    }
+
+    function renderSavedTravelers(travelers = []) {
+        const listDiv = document.getElementById('saved-travelers-list');
+        listDiv.innerHTML = '';
+        if (travelers.length === 0) { listDiv.innerHTML = '<li class="list-group-item text-muted">Список туристов пуста.</li>'; return; }
+        travelers.forEach(t => {
+            const item = document.createElement('li');
+            item.className = 'list-group-item traveler-item';
+            item.innerHTML = `
+                <div>
+                    <strong>${t.full_name}</strong><br>
+                    <small class="text-muted">Тел: ${t.phone}</small>
+                </div>
+                <div class="traveler-controls">
+                    <button class="btn-icon" title="Редактировать" onclick="window.editTraveler(${t.id})">⚙️</button>
+                    <button class="btn-icon" title="Удалить" onclick="window.deleteTraveler(${t.id})">❌</button>
+                </div>
+            `;
+            listDiv.appendChild(item);
+        });
+    }
+});
+</script>
+{% endblock %}
