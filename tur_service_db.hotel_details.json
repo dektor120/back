@@ -1,0 +1,171 @@
+[{
+  "_id": 1,
+  "description": "Роскошный отель на берегу Красного моря с собственным пляжем и аквапарком. Идеально для семейного отдыха.",
+  "photo_urls": [
+    "https://fs.tonkosti.ru/0y/5m/0y5mykcxf6n4kwkc00woso8ow.jpg"
+  ],
+  "amenities": [
+    "Бассейн",
+    "Wi-Fi",
+    "Все включено",
+    "Аквапарк"
+  ]
+},
+{
+  "_id": 2,
+  "description": "Уютный отель рядом с пирамидами Гизы. Насладитесь историей и комфортом.",
+  "photo_urls": [
+    "https://pix10.agoda.net/hotelImages/145869/-1/6acd9f4ec79f4eaa75b87e665811e684.jpg?ca=20&ce=0&ar=1x1&s=1024x"
+  ],
+  "amenities": [
+    "Wi-Fi",
+    "Ресторан",
+    "Экскурсии"
+  ]
+},
+{
+  "_id": 3,
+  "description": "Элегантный отель в сердце Парижа, в двух шагах от Лувра. Идеальное место для романтического путешествия.",
+  "photo_urls": [
+    "https://avatars.mds.yandex.net/i?id=f653b59b549cc4dee09e534f016000a4_l-5204637-images-thumbs&n=13"
+  ],
+  "amenities": [
+    "Wi-Fi",
+    "Завтрак включен",
+    "Консьерж-сервис"
+  ]
+},
+{
+  "_id": 4,
+  "description": "Современный бутик-отель в районе Монмартр с потрясающим видом на город.",
+  "photo_urls": [
+    "https://cms.robbreport.hk/wp-content/uploads/2024/01/Ho%CC%82tel-Martinez-PRINT-1-thumbnail.jpg"
+  ],
+  "amenities": [
+    "Wi-Fi",
+    "Бар на крыше",
+    "Дизайнерский интерьер"
+  ]
+},
+{
+  "_id": 5,
+  "description": "Пляжный курорт на Патонге с прямым выходом к морю и множеством водных развлечений.",
+  "photo_urls": [
+    "https://avatars.mds.yandex.net/get-altay/15401366/2a00000194858dcebf10f683c0b526bd3afa/XXL_height"
+  ],
+  "amenities": [
+    "Бассейн",
+    "Wi-Fi",
+    "Пляж",
+    "Дайвинг-центр"
+  ]
+},
+{
+  "_id": 6,
+  "description": "Спокойный отель в окружении джунглей, предлагающий детокс-программы и йога-ретриты.",
+  "photo_urls": [
+    "https://travelandmore.net/wp-content/uploads/2020/10/SALA-Phuket_101.jpg"
+  ],
+  "amenities": [
+    "Бассейн",
+    "Wi-Fi",
+    "Йога",
+    "СПА"
+  ]
+},
+{
+  "_id": 7,
+  "description": "Исторический отель в центре Рима, рядом с Колизеем. Почувствуйте дух вечного города.",
+  "photo_urls": [
+    "https://avatars.mds.yandex.net/i?id=6a167fc25e068ebe42d450f9ff5c86df_l-10448002-images-thumbs&n=13"
+  ],
+  "amenities": [
+    "Wi-Fi",
+    "Завтрак включен",
+    "Историческое здание"
+  ]
+},
+{
+  "_id": 8,
+  "description": "Роскошный курорт на утесе с панорамным видом на Индийский океан. К услугам гостей каскадные бассейны, спа-центр мирового класса и виллы с собственными бассейнами. Идеальное место для уединенного и романтического отдыха на Бали.",
+  "photo_urls": [
+    "https://avatars.mds.yandex.net/i?id=dc5df854508a2f1262cb9143dc18057f_l-4078102-images-thumbs&n=13"
+  ],
+  "amenities": [
+    "Wi-Fi",
+    "Кухня в номере"
+  ]
+},
+{
+  "_id": 9,
+  "description": "Отель с видом на Босфор. Насладитесь панорамными видами и турецким гостеприимством.",
+  "photo_urls": [
+    "https://pbs.twimg.com/media/GdUaA4HXUAAksr7.jpg"
+  ],
+  "amenities": [
+    "Бассейн",
+    "Wi-Fi",
+    "СПА",
+    "Панорамный вид"
+  ]
+},
+{
+  "_id": 10,
+  "description": "Современный отель, расположенный прямо над станцией Сибуя, с прямым доступом к знаменитому перекрестку. Из окон номеров открывается захватывающий вид на неоновый Токио. Идеальная отправная точка для исследования города.",
+  "photo_urls": [
+    "https://yandex-images.clstorage.net/F5DUU6079/92c0f0n-/YsuNQqt3kbSgaepCRiffc9zQGrUXz9wT5A-HNx-TANTT49oYGJ-naegY1uZeMBpaPx6EOhiRDOLiSIaiYkVNH6fqyMPfs_UFRSz-U7NnX0OM8c9hJt4Zs6HeIxIqE0BiZYRdTxs4QU4velQiq7TeLhm45Vwf0hsSwy_kF0akzCkwa5-zOVYxsID5KcRnRr6RLACtJUWM6HOSb6QyXLV38_akfB5JuJH_nflnkUuTLYxqeGEt3MIrsnD-J8XGBe24U6r9QulGwdCQSLoWVKVNMX2g3WZVzOlCE-50Ml-19lCU5r-9yWmC7u5YBDKpEn5tmqiD3y1hW7IjHCS3tYWNyOD5_6OJNoAAMhkqZ9bGXwD8cx0V1_-6UBOd55PvVATQ5NSP78gJMO--G6QT-2EcDVhZsj18wklCQ24H18cmDToQ-v1BmsSistJomQZ35JyiDEKOlNVfGNFT7URjnQQFkVS1f54qW6F-3RnFgYnTXB8KO5EvHzN7YaNN5USWVd_6csr_obt20pBhu7h2FvUv0c7CjRTGv4pRUK-lUG1nFGEEt0_tSmoTTl5aZKPrA78f2Wvjn80haNDg3eYVNDf_amOKDmFp1eCS89kYBhXErWI_Eb8VpA0JQuHuVHOttIfDVBdPbyoYoe78GCYyeiM_zYl7oG3uk1kT0R2WJQR0DDhSGs2xaUXw4xLI-HYXxb9xjaC-poWOCsLQnoYyDIX14TRG3mwY-TK9_6lk08ogXm4JG6I8PwEI09PvFDTnZy-Lgjv_gShH4vJzuRuGJ5TfY2xQ_hTGH9ii8R1UYLzk9FN39P3NSJgRHCxapDNYs589uJtxLezButHTT3ZXNEf8igO6DNPYRzHj4plIJnbnf8NM0Yx1Ru27k-CdpTOtRUWTtsfP_yqKcB2eGASR-xBMfNpp0w7ss3mhon0khmXHTXkA-P9j-uaCACL6OmbVhZyTDcG_Nufsi2LjHBejbedXQ"
+  ],
+  "amenities": [
+    "Wi-Fi",
+    "Терраса на крыше",
+    "Традиционный хаммам"
+  ]
+},
+{
+  "_id": 11,
+  "description": "Очаровательный отель с видом на каналы Венеции. Почувствуйте уникальную атмосферу города на воде, наслаждаясь классическим венецианским стилем и уютом.",
+  "photo_urls": [
+    "https://yandex-images.clstorage.net/F5DUU6079/92c0f0n-/YsuNQqt3kbSgaepCRiffc9zQGrUXz9wT5A-HNx_mdRGGMxpICIqnGYhdVvZO9V8fX06RPxi0KReX-MOysmB4CoefaMO_s9XFFazOA_NnX0OM8c9hJt4Zs6HeIxIqE0BiZYRdTxs4QU4velQiq7TeLhm45Vwf0hsSwy_kF0akzCkwa5-zOVYxsID5KcRnRr6RLACtJUWM6HOSb6QyXLV38_akfB5JuJH_nflnkUuTLYxqeGEt3MIrsnD-J8XGBe24U6r9QulGwdCQSLoWVKVNMX2g3WZVzOlCE-50Ml-19lCU5r-9yWmC7u5YBDKpEn5tmqiD3y1hW7IjHCS3tYWNyOD5_6OJNoAAMhkqZ9bGXwD8cx0V1_-6UBOd55PvVATQ5NSP78gJMO--G6QT-2EcDVhZsj18wklCQ24H18cmDToQ-v1BmsSistJomQZ35JyiDEKOlNVfGNFT7URjnQQFkVS1f54qW6F-3RnFgYnTXB8KO5EvHzN7YaNN5USWVd_6csr_obt20pBhu7h2FvUv0c7CjRTGv4pRUK-lUG1nFGEEt0_tSmoTTl5aZKPrA78f2Wvjn80haNDg3eYVNDf_amOKDmFp1eCS89kYBhXErWI_Eb8VpA0JQuHuVHOttIfDVBdPbyoYoe78GCYyeiM_zYl7oG3uk1kT0R2WJQR0DDhSGs2xaUXw4xLI-HYXxb9xjaC-poWOCsLQnoYyDIX14TRG3mwY-TK9_6lk08ogXm4JG6I8PwEI09PvFDTnZy-Lgjv_gShH4vJzuRuGJ5TfY2xQ_hTGH9ii8R1UYLzk9FN39P3NSJgRHCxapDNYs589uJtxLezButHTT3ZXNEf8igO6DNPYRzHj4plIJnbnf8NM0Yx1Ru27k-CdpTOtRUWTtsfP_yqKcB2eGASR-xBMfNpp0w7ss3mhon0khmXHTXkA-P9j-uaCACL6OmbVhZyTDcG_Nufsi2LjHBejbedXQ"
+  ],
+  "amenities": [
+    "Wi-Fi",
+    "Вид на канал",
+    "Гондола-сервис"
+  ]
+},
+{
+  "_id": 12,
+  "description": "Современный отель в Риме, расположенный в тихом районе, идеален для тех, кто хочет отдохнуть от городской суеты, оставаясь при этом вблизи от основных достопримечательностей.",
+  "photo_urls": [
+    "https://avatars.mds.yandex.net/i?id=cfc7dbe5fa5ac11b3113032113b204571b90321f-10414746-images-thumbs&n=13"
+  ],
+  "amenities": [
+    "Wi-Fi",
+    "Сад на крыше",
+    "Бесплатная парковка"
+  ]
+},
+{
+  "_id": 13,
+  "description": "Традиционный японский рёкан в Киото с горячими источниками (онсэн). Погрузитесь в атмосферу старой Японии и насладитесь умиротворением.",
+  "photo_urls": [
+    "https://avatars.mds.yandex.net/i?id=0543ac8c9a4f3d73ba6f44583151020a0b992963-5233982-images-thumbs&n=13"
+  ],
+  "amenities": [
+    "Онсэн",
+    "Японский сад",
+    "Традиционные ужины кайсеки"
+  ]
+},
+{
+  "_id": 14,
+  "description": "Футуристический капсульный отель в Токио, в районе Синдзюку. Идеально подходит для соло-путешественников, ценящих технологии и минимализм.",
+  "photo_urls": [
+    "https://avatars.mds.yandex.net/i?id=ccfbc4a9dc55a9a95d8705841eff5fcb3bafa22b-4748118-images-thumbs&n=13"
+  ],
+  "amenities": [
+    "Wi-Fi",
+    "Общая лаунж-зона",
+    "Капсулы для сна"
+  ]
+}]
