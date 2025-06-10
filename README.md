@@ -1,4 +1,4 @@
-1.Создать БД tur_service_db
+1.Создать в MONGO DB БД tur_service_db.
 
 2.Создать коллекцию hotel_details, импортировать данные из приложенного JSON файла.
 
