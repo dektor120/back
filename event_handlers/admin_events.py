@@ -12,7 +12,6 @@ from .catalog_events import handle_get_hotels, handle_get_tours_for_client
 @socketio.on('join_admin_room')
 @admin_required
 def handle_join_admin_room(payload, cleaned_data):
-    """Присоединяет администратора к специальной комнате для получения уведомлений."""
     if request.sid:
         socketio.join_room('admin_room', request.sid)
     log_event('INFO', 'admin_join', f"Админ {payload['login']} присоединился к комнате уведомлений.")
@@ -21,7 +20,6 @@ def handle_join_admin_room(payload, cleaned_data):
 @socketio.on('get_admin_dashboard_data')
 @admin_required
 def handle_get_admin_dashboard_data(payload, cleaned_data):
-    """Отправляет данные для главной страницы админ-панели."""
     new_requests = ContactRequest.query.filter_by(is_completed=False).order_by(ContactRequest.created_at.desc()).all()
     new_requests_list = []
     for r in new_requests:
@@ -61,7 +59,6 @@ def handle_get_admin_dashboard_data(payload, cleaned_data):
 @socketio.on('complete_request')
 @admin_required
 def handle_complete_request(payload, cleaned_data):
-    """Помечает заявку на обратный звонок как выполненную."""
     req = ContactRequest.query.get(cleaned_data.get('request_id'))
     if req:
         req.is_completed = True
@@ -118,7 +115,6 @@ def handle_delete_hotel(payload, cleaned_data):
 @socketio.on('get_admin_data')
 @admin_required
 def handle_get_admin_data(payload, cleaned_data):
-    """Отправляет админу все справочники для его форм."""
     try:
         countries = Country.query.order_by(Country.name).all()
         cities = City.query.order_by(City.name).all()
@@ -139,7 +135,6 @@ def handle_get_admin_data(payload, cleaned_data):
 @socketio.on('get_template_details')
 @admin_required
 def handle_get_template_details(payload, cleaned_data):
-    """Получает детали шаблона (описание) из MongoDB."""
     details = mongo_db.tour_template_details.find_one({'_id': int(cleaned_data.get('template_id'))})
     emit('template_details_data', {'itinerary': details.get('itinerary', '') if details else ''})
 
