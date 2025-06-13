@@ -16,15 +16,22 @@ def handle_register(data):
     email = data.get('email')
     password = data.get('password')
 
+    log_event('INFO', 'register_attempt', f"Попытка регистрации: login={login}, email={email}")
+
     if not is_valid_login(login):
-        return emit('register_response', {'success': False, 'message': 'Логин должен быть 5-20 символов и содержать только латиницу, цифры и подчеркивание.'})
+        return emit('register_response', {'success': False,
+                                          'message': 'Логин должен быть 5-20 символов и содержать только латиницу, цифры и подчеркивание.'})
+
     if not is_valid_email(email):
         return emit('register_response', {'success': False, 'message': 'Некорректный формат email.'})
-    if not is_valid_password(password):
-        return emit('register_response', {'success': False, 'message': 'Пароль должен быть не менее 6 символов.'})
+
+    password_ok, password_error = is_valid_password(password)
+    if not password_ok:
+        return emit('register_response', {'success': False, 'message': password_error})
 
     if User.query.filter((User.login == login) | (User.email == email)).first():
-        return emit('register_response', {'success': False, 'message': 'Пользователь с таким логином или email уже существует.'})
+        return emit('register_response',
+                    {'success': False, 'message': 'Пользователь с таким логином или email уже существует.'})
 
     hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
     new_user = User(login=login, email=email, password_hash=hashed_password, role='client')
