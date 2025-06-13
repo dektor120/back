@@ -22,7 +22,6 @@
     </div>
 
     <div class="row g-5">
-        <!-- Основная колонка -->
         <div class="col-lg-8">
             <div class="card mb-4">
                 <div class="card-body">
@@ -56,7 +55,6 @@
             </div>
         </div>
 
-        <!-- Боковая колонка список туристов -->
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-body">
@@ -89,7 +87,6 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // --- ВАЛИДАЦИЯ ---
     const validators = {
         fullName: (val) => /^[а-яА-ЯёЁ\s-]{5,}$/.test(val) && val.split(' ').length >= 2,
         phone: (val) => /^(\+7|8)\d{10}$/.test(val),
@@ -101,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
         passport: 'Некорректный формат паспорта (пример: 1234 567890).'
     };
 
-    // --- ПРОВЕРКА АВТОРИЗАЦИИ ---
     const token = getCookie('token');
     if (!token) { window.location.href = '/auth'; return; }
     const payload = parseJwt(token);
@@ -113,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let savedTravelers = [];
 
-    // --- ЭЛЕМЕНТЫ DOM ---
     const saveTravelerButton = document.getElementById('saveTravelerButton');
     const cancelTravelerEditButton = document.getElementById('cancelTravelerEditButton');
     const saveProfileButton = document.getElementById('saveProfileButton');
@@ -121,7 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileErrorDiv = document.getElementById('profile-error');
     const travelerErrorDiv = document.getElementById('traveler-error');
 
-    // --- СЛУШАТЕЛИ ---
     socket.on('my_bookings_data', (data) => renderMyBookings(data.bookings));
     socket.on('saved_travelers_data', (data) => {
         savedTravelers = data.travelers || [];
@@ -157,17 +151,14 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('booking_status_updated', (data) => { showToast(data.message); socket.emit('get_my_bookings', { token: token }); });
     socket.on('error', (data) => showToast(data.message, 'danger'));
 
-    // --- ЗАПРОСЫ ДАННЫХ ПРИ ЗАГРУЗКЕ ---
     socket.emit('get_my_bookings', { token: token });
     socket.emit('get_saved_travelers', { token: token });
     socket.emit('get_my_profile', { token: token });
 
-    // --- ОБРАБОТЧИКИ КНОПОК ---
     saveProfileButton.onclick = handleSaveProfile;
     saveTravelerButton.onclick = handleSaveTraveler;
     cancelTravelerEditButton.onclick = switchToAddTravelerMode;
 
-    // --- ЛОГИКА ---
     function handleSaveProfile() {
         const profileData = {
             fullName: document.getElementById('profile-full-name').value,
