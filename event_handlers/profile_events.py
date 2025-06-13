@@ -8,7 +8,6 @@ from auth import token_required
 @socketio.on('get_my_profile')
 @token_required
 def handle_get_my_profile(payload, cleaned_data):
-    """Отправляет данные профиля пользователя."""
     profile = UserProfile.query.filter_by(user_id=payload['user_id']).first()
     profile_data = {}
     if profile:
@@ -23,7 +22,6 @@ def handle_get_my_profile(payload, cleaned_data):
 @socketio.on('update_my_profile')
 @token_required
 def handle_update_my_profile(payload, cleaned_data):
-    """Обновляет данные профиля пользователя."""
     user_id = payload['user_id']
     data = cleaned_data.get('profile')
 
@@ -47,7 +45,6 @@ def handle_update_my_profile(payload, cleaned_data):
 @socketio.on('get_saved_travelers')
 @token_required
 def handle_get_saved_travelers(payload, cleaned_data):
-    """Отправляет список сохраненных туристов пользователя."""
     travelers = SavedTraveler.query.filter_by(user_id=payload['user_id']).all()
     travelers_list = []
     for t in travelers:
@@ -63,7 +60,6 @@ def handle_get_saved_travelers(payload, cleaned_data):
 @socketio.on('add_saved_traveler')
 @token_required
 def handle_add_saved_traveler(payload, cleaned_data):
-    """Добавляет нового туриста в список пользователя."""
     user_id = payload['user_id']
     data = cleaned_data.get('traveler')
 
@@ -89,7 +85,6 @@ def handle_add_saved_traveler(payload, cleaned_data):
 @socketio.on('update_saved_traveler')
 @token_required
 def handle_update_saved_traveler(payload, cleaned_data):
-    """Обновляет данные сохраненного туриста."""
     user_id = payload['user_id']
     traveler_id = cleaned_data.get('traveler_id')
     data = cleaned_data.get('traveler')
@@ -114,7 +109,6 @@ def handle_update_saved_traveler(payload, cleaned_data):
 @socketio.on('delete_saved_traveler')
 @token_required
 def handle_delete_saved_traveler(payload, cleaned_data):
-    """Удаляет сохраненного туриста."""
     user_id = payload['user_id']
     traveler_id = cleaned_data.get('traveler_id')
     traveler = SavedTraveler.query.filter_by(id=traveler_id, user_id=user_id).first()
