@@ -5,9 +5,6 @@ from database_setup import setup_database
 
 
 def create_app(config_class=Config):
-    """
-    Создает и конфигурирует экземпляр приложения Flask.
-    """
     app = Flask(__name__)
     app.config.from_object(config_class)
 
