@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ТурСервис{% endblock %}</title>
 
-    <!-- Подключаем Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
-    <!-- Подключаем иконки Bootstrap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
-        /* Несколько наших кастомных стилей поверх Bootstrap */
         body { background-color: #f8f9fa; }
         .nav-logo { font-weight: 700; font-size: 1.5rem; }
         .main-container { min-height: 80vh; }
@@ -63,17 +60,13 @@
         </div>
     </footer>
 
-    <!-- Контейнер для всплывающих уведомлений Bootstrap (toasts) -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
-    <!-- Подключаем Bootstrap 5 JS (нужен для выпадающих меню и др. компонентов) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
-    <!-- Подключаем Socket.IO -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
     <script>
-        // --- ГЛОБАЛЬНЫЕ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
         const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
         function getCookie(name) {
@@ -86,7 +79,6 @@
             try { return JSON.parse(atob(token.split('.')[1])); } catch (e) { return null; }
         }
 
-        // НОВАЯ ФУНКЦИЯ ДЛЯ УВЕДОМЛЕНИЙ
         function showToast(message, type = 'success') {
             const toastContainer = document.querySelector('.toast-container');
             const toastId = 'toast-' + Math.random().toString(36).substr(2, 9);
@@ -104,18 +96,15 @@
             const toastElement = document.getElementById(toastId);
             const toast = new bootstrap.Toast(toastElement);
             toast.show();
-            // Удаляем элемент после того, как он скроется
             toastElement.addEventListener('hidden.bs.toast', () => {
                 toastElement.remove();
             });
         }
 
-        // Общая логика для всех страниц
         document.addEventListener('DOMContentLoaded', () => {
             const token = getCookie('token');
             const payload = token ? parseJwt(token) : null;
 
-            // Управление видимостью ссылок в навигации
             const guestLinks = document.querySelectorAll('.guest-link');
             const clientLinks = document.querySelectorAll('.client-link');
             const adminLinks = document.querySelectorAll('.admin-link');
