@@ -5,7 +5,6 @@ from extensions import mongo_db, db
 from models import TourTemplate, ScheduledTour, Booking
 
 
-# --- Функция логирования ---
 def log_event(level, event, message, **kwargs):
     """Записывает событие в лог MongoDB и выводит в консоль."""
     if mongo_db is not None:
@@ -14,7 +13,6 @@ def log_event(level, event, message, **kwargs):
     print(f"LOG [{level} - {event}]: {message}")
 
 
-# --- Функции валидации ---
 def is_valid_login(login):
     return re.match(r'^[a-zA-Z0-9_]{5,20}$', login)
 
