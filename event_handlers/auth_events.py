@@ -11,7 +11,6 @@ from utils import log_event, is_valid_login, is_valid_email, is_valid_password
 
 @socketio.on('register')
 def handle_register(data):
-    """Обрабатывает регистрацию нового пользователя."""
     login = data.get('login')
     email = data.get('email')
     password = data.get('password')
@@ -44,7 +43,6 @@ def handle_register(data):
 
 @socketio.on('login')
 def handle_login(data):
-    """Обрабатывает вход пользователя в систему."""
     login = data.get('login')
     password = data.get('password')
     user = User.query.filter_by(login=login).first()
