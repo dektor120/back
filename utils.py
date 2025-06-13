@@ -20,7 +20,15 @@ def is_valid_login(login):
 
 
 def is_valid_password(password):
-    return len(password) >= 6
+    if len(password) < 8:
+        return False, "Пароль должен содержать не менее 8 символов."
+    if not re.search(r'[A-Z]', password):
+        return False, "Пароль должен содержать хотя бы одну заглавную букву."
+    if not re.search(r'[a-z]', password):
+        return False, "Пароль должен содержать хотя бы одну строчную букву."
+    if not re.search(r'[0-9]', password):
+        return False, "Пароль должен содержать хотя бы одну цифру."
+    return True, ""
 
 
 def is_valid_email(email):
