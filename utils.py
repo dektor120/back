@@ -6,7 +6,6 @@ from models import TourTemplate, ScheduledTour, Booking
 
 
 def log_event(level, event, message, **kwargs):
-    """Записывает событие в лог MongoDB и выводит в консоль."""
     if mongo_db is not None:
         log_entry = {'timestamp': datetime.utcnow(), 'level': level, 'event': event, 'message': message, **kwargs}
         mongo_db.logs.insert_one(log_entry)
