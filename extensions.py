@@ -3,12 +3,10 @@ from flask_socketio import SocketIO
 from pymongo import MongoClient
 from config import get_cipher_suite, Config
 
-# Инициализация расширений без привязки к приложению
 db = SQLAlchemy()
 socketio = SocketIO()
 cipher_suite = get_cipher_suite()
 
-# Подключение к MongoDB
 try:
     client = MongoClient(Config.MONGO_URI)
     client.server_info()
