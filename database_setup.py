@@ -4,7 +4,6 @@ from models import User, Country, City, Hotel, TourTemplate
 
 
 def setup_database(app):
-    """Создает все таблицы и наполняет их начальными данными, если они пусты."""
     with app.app_context():
         db.create_all()
 
