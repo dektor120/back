@@ -5,7 +5,6 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 def get_cipher_suite():
-    """Генерирует или загружает ключ шифрования"""
     key_file = 'secret.key'
     if not os.path.exists(key_file):
         key = Fernet.generate_key()
@@ -18,7 +17,6 @@ def get_cipher_suite():
 
 
 class Config:
-    """Класс конфигурации приложения Flask."""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'my-super-secret-key!'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'app.db')
