@@ -11,7 +11,6 @@ from auth import token_required
 @socketio.on('check_availability')
 @token_required
 def handle_check_availability(payload, cleaned_data):
-    """Проверяет доступность мест в туре и номеров в отеле."""
     scheduled_tour_id = cleaned_data.get('scheduled_tour_id')
     people_requested = int(cleaned_data.get('people', 1))
 
@@ -54,7 +53,6 @@ def handle_check_availability(payload, cleaned_data):
 @socketio.on('create_booking')
 @token_required
 def handle_create_booking(payload, cleaned_data):
-    """Создает новую бронь."""
     user_id = payload['user_id']
     booking_details = cleaned_data.get('booking_details')
     travelers_data = cleaned_data.get('travelers')
@@ -90,7 +88,6 @@ def handle_create_booking(payload, cleaned_data):
 @socketio.on('get_my_bookings')
 @token_required
 def handle_get_my_bookings(payload, cleaned_data):
-    """Отправляет пользователю список его бронирований."""
     bookings = Booking.query.filter_by(user_id=payload['user_id']).order_by(Booking.created_at.desc()).all()
     bookings_list = []
     for b in bookings:
@@ -108,7 +105,6 @@ def handle_get_my_bookings(payload, cleaned_data):
 @socketio.on('update_booking_status')
 @token_required
 def handle_update_booking_status(payload, cleaned_data):
-    """Позволяет пользователю изменить статус своей брони (оплатить или отменить)."""
     booking_id = cleaned_data.get('booking_id')
     new_status = cleaned_data.get('status')
 
