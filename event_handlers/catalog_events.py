@@ -6,7 +6,6 @@ from utils import log_event
 
 @socketio.on('get_tours_for_client')
 def handle_get_tours_for_client(data):
-    """Отправляет клиенту список туров из расписания с учетом фильтров."""
     filters = data.get('filters', {}) if isinstance(data, dict) else {}
     log_event('INFO', 'get_tours_client', f"Запрос списка туров с фильтрами: {filters}")
 
@@ -44,7 +43,6 @@ def handle_get_tours_for_client(data):
 
 @socketio.on('get_filter_dictionaries')
 def handle_get_filter_dictionaries(data):
-    """Отправляет справочники стран и городов для фильтров на клиенте."""
     try:
         countries = Country.query.order_by(Country.name).all()
         cities = City.query.order_by(City.name).all()
@@ -58,7 +56,6 @@ def handle_get_filter_dictionaries(data):
 
 @socketio.on('get_hotels')
 def handle_get_hotels(data):
-    """Отправляет полный список отелей и связанных справочников."""
     try:
         hotels = Hotel.query.order_by(Hotel.name).all()
         hotel_ids = [h.id for h in hotels]
