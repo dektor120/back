@@ -20,7 +20,6 @@
 {% block content %}
 <div class="auth-wrapper">
     <div class="auth-container">
-        <!-- Форма входа (видна по умолчанию) -->
         <div id="login-form" class="card p-4">
             <h2 class="text-center mb-4">Вход в систему</h2>
             <div class="auth-form">
@@ -40,13 +39,12 @@
             </div>
         </div>
 
-        <!-- Форма регистрации (скрыта по умолчанию) -->
         <div id="register-form" class="card p-4" style="display: none;">
             <h2 class="text-center mb-4">Регистрация</h2>
             <div class="auth-form">
                 <div class="mb-3">
                     <label for="reg_login" class="form-label">Логин</label>
-                    <input type="text" id="reg_login" class="form-control" placeholder="5-20 символов, a-z, 0-9, _" required>
+                    <input type="text" id="reg_login" class="form-control" placeholder="5-20 символов, a-z, 0-9" required>
                 </div>
                  <div class="mb-3">
                     <label for="reg_email" class="form-label">Email</label>
@@ -54,7 +52,7 @@
                 </div>
                 <div class="mb-3">
                     <label for="reg_password" class="form-label">Пароль</label>
-                    <input type="password" id="reg_password" class="form-control" placeholder="Минимум 6 символов" required>
+                    <input type="password" id="reg_password" class="form-control" placeholder="Минимум 1 цифра, 1 заглавная буква, 8 символов" required>
                 </div>
                 <div id="register-error" class="text-danger mb-3"></div>
                 <button id="registerButton" class="btn btn-primary w-100">Зарегистрироваться</button>
@@ -70,12 +68,16 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ВАЛИДАЦИИ (на клиенте) ---
+
     const validators = {
         login: (val) => /^[a-zA-Z0-9_]{5,20}$/.test(val),
         email: (val) => /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]*$/.test(val),
-        password: (val) => val.length >= 6,
-        // Добавим простую проверку для логина при входе (не пустой)
+        password: {
+            length: (val) => val.length >= 8,
+            uppercase: (val) => /[A-Z]/.test(val),
+            lowercase: (val) => /[a-z]/.test(val),
+            number: (val) => /[0-9]/.test(val)
+        },
         notEmpty: (val) => val.trim() !== ''
     };
 
@@ -86,9 +88,23 @@ document.addEventListener('DOMContentLoaded', () => {
         notEmpty: 'Поле не может быть пустым.'
     };
 
-    // --- Логика страницы ---
+    const regPasswordInput = document.getElementById('reg_password');
+
+     regPasswordInput.addEventListener('input', () => {
+        const password = regPasswordInput.value;
+        const requirements = [
+            { id: 'req-length', valid: validators.password.length(password) },
+            { id: 'req-uppercase', valid: validators.password.uppercase(password) },
+            { id: 'req-lowercase', valid: validators.password.lowercase(password) },
+            { id: 'req-number', valid: validators.password.number(password) }
+        ];
+        requirements.forEach(req => {
+            const el = document.getElementById(req.id);
+            el.className = req.valid ? 'valid' : 'invalid';
+        });
+    });
+
     if (getCookie('token')) {
-        // Если уже залогинен, перенаправляем на главную
         window.location.href = '/';
         return;
     }
@@ -100,11 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginButton = document.getElementById('loginButton');
     const registerButton = document.getElementById('registerButton');
 
-    // Переключатели форм
     showRegisterLink.onclick = () => { loginForm.style.display = 'none'; registerForm.style.display = 'block'; };
     showLoginLink.onclick = () => { loginForm.style.display = 'block'; registerForm.style.display = 'none'; };
 
-    // --- Обработчики событий Socket.IO ---
     socket.on('login_response', (data) => {
         if (data.success) {
             alert('Вход выполнен успешно!');
@@ -131,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Логика кнопок ---
     loginButton.onclick = () => {
         const loginInput = document.getElementById('login_login');
         const passwordInput = document.getElementById('login_password');
@@ -151,12 +164,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const passwordInput = document.getElementById('reg_password');
         const errorDiv = document.getElementById('register-error');
         errorDiv.innerText = '';
+        const password = passwordInput.value;
 
-        if (!validators.login(loginInput.value)) { errorDiv.innerText = errorMessages.login; return; }
-        if (!validators.email(emailInput.value)) { errorDiv.innerText = errorMessages.email; return; }
-        if (!validators.password(passwordInput.value)) { errorDiv.innerText = errorMessages.password; return; }
+        if (!validators.login(loginInput.value)) { errorDiv.innerText = 'Логин должен содержать 5-20 символов (латиница, цифры).'; return; }
+        if (!validators.email(emailInput.value)) { errorDiv.innerText = 'Некорректный формат email.'; return; }
+        if (!validators.password.length(password) || !validators.password.uppercase(password) || !validators.password.lowercase(password) || !validators.password.number(password)) {
+             errorDiv.innerText = 'Пароль не соответствует всем требованиям.';
+             return;
+        }
 
-        socket.emit('register', {'login': loginInput.value, 'email': emailInput.value, 'password': passwordInput.value});
+        socket.emit('register', {'login': loginInput.value, 'email': emailInput.value, 'password': password});
     };
 });
 </script>
