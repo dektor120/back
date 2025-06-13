@@ -4,7 +4,6 @@
 
 {% block head %}
 <style>
-    /* --- ОСНОВНЫЕ СТИЛИ ДЛЯ СЕТКИ И КАРТОЧЕК --- */
     .hotels-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -25,7 +24,6 @@
         box-shadow: 0 8px 25px rgba(0,0,0,0.12);
     }
 
-    /* --- СТИЛИ ДЛЯ ИЗОБРАЖЕНИЯ --- */
     .hotel-photo {
         height: 220px;
         width: 100%;
@@ -33,8 +31,6 @@
         background-position: center;
         background-repeat: no-repeat;
     }
-
-    /* --- Стили для контента карточки --- */
     .hotel-info {
         padding: 1.5rem;
         flex-grow: 1;
@@ -74,7 +70,7 @@
 
     .admin-form { grid-column: 1 / -1; }
     .admin-controls { display: flex; gap: 5px; }
-    .consult-button { margin-top: auto; } /* Прижимаем кнопку к низу */
+    .consult-button { margin-top: auto; } 
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1050; }
     .modal-content { background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 450px; }
@@ -90,7 +86,6 @@
         <p class="lead text-muted">Мы работаем только с проверенными отелями, чтобы обеспечить ваш комфорт и безопасность.</p>
     </div>
 
-    <!-- Форма для админа -->
     <div id="admin-panel" class="card admin-panel mb-5" style="display: none;">
         <h2 id="hotel-form-title">Добавить новый отель</h2>
         <input type="hidden" id="hotel-id">
@@ -109,13 +104,11 @@
         <button id="cancelHotelEditButton" class="btn btn-secondary" style="display: none;">Отмена</button>
     </div>
 
-    <!-- Контейнер для списка отелей -->
     <div id="hotels-list" class="hotels-grid">
         <p class="text-center w-100">Загрузка отелей...</p>
     </div>
 </div>
 
-<!-- Модальное окно для заявки -->
 <div class="modal fade" id="request-modal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -139,7 +132,6 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // --- ВАЛИДАЦИЯ ---
     const validators = {
         fullName: (val) => /^[а-яА-ЯёЁ\s-]{5,}$/.test(val) && val.split(' ').length >= 2,
         phone: (val) => /^(\+7|8)\d{10}$/.test(val),
@@ -157,14 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const isAdmin = payload?.role === 'admin';
     const requestModal = new bootstrap.Modal(document.getElementById('request-modal'));
 
-    // --- Элементы DOM ---
     const hotelsListDiv = document.getElementById('hotels-list');
     const adminPanel = document.getElementById('admin-panel');
     const saveHotelButton = document.getElementById('saveHotelButton');
     const cancelHotelEditButton = document.getElementById('cancelHotelEditButton');
     const submitRequestButton = document.getElementById('submitRequestButton');
-
-    // --- Слушатели ---
+    
     socket.on('hotels_data', (data) => {
         allHotels = data.hotels || [];
         allCities = data.cities || [];
@@ -189,10 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     socket.on('admin_error', (data) => showToast(data.message, 'danger'));
 
-    // --- Запросы данных ---
     socket.emit('get_hotels', {});
 
-    // --- Логика ---
     if (isAdmin) {
         adminPanel.style.display = 'block';
         saveHotelButton.onclick = handleSaveHotel;
