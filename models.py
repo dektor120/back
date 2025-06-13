@@ -2,7 +2,6 @@ from datetime import datetime
 from extensions import db
 
 
-# --- Модели Баз Данных ---
 
 
 class User(db.Model):
